@@ -43,7 +43,27 @@
         result (<!! (core/save-model! model {:db-config db-config
                                              :table table
                                              :fields {:email email}}))]
-    (is (result/succeeded? result))))
+    (is (result/succeeded? result))
+    (is (= email (:email result)))
+    (is (= (:name model) (:name result)))))
+
+(deftest inserting-with-exception
+  (let [result (<!! (core/save-model! {} {:db-config db-config
+                                          :table "does-not-exist"}))]
+    (is (result/failed? result))))
+
+(deftest inserting-and-updating
+  (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
+        model {:name "Bruce" :email email}
+        result1 (<!! (core/save-model! model {:db-config db-config
+                                              :table table
+                                              :fields {:email email}}))
+        result2 (<!! (core/save-model! result1 {:db-config db-config
+                                              :table table
+                                              :fields {:email email}}))]
+    (is (result/succeeded? result1))
+    (is (result/succeeded? result2))
+    (is (= (:_id result1) (:_id result2)))))
 
 (run-tests)
 

@@ -70,7 +70,6 @@
   "Builds fields to be persisted on the datastore"
   [model config]
   (let [fields (or (:fields config) {})]
-    (println model)
     (-> fields
         (assoc :id (:_id model))
         (assoc :model model))))
@@ -83,7 +82,7 @@
         fields (build-fields model config)
         sql-spec {:table (:table config) :returning "id"}]
       (if new?
-        (update! db (assoc sql-spec :where ["id = $1" uuid]) model)
+        (update! db (assoc sql-spec :where ["id = $1" uuid]) fields)
         (insert! db sql-spec fields))))
 
 (defn save-model!
