@@ -42,11 +42,6 @@
                         :port (Integer/parseInt (nth parts 2))
                         :database (nth parts 3)}))
 
-  {:hostname "fizzy-cherry.db.elephantsql.com"
-   :database "rosailkj"
-   :username "rosailkj"
-   :pool-size 2
-   :password "xRHGRGqQ_K5s8AEUl-Fc9J2cWWH8pJyG"}
   )
 
 (def ^:private db-pool (atom nil))
