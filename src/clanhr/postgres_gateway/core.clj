@@ -24,6 +24,32 @@
         (assoc :id (:_id model))
         (assoc :model model))))
 
+(defmacro build-result
+  "Verifies the response and short-circuit's it if it's an error/exception.
+  If it's ok, runs the given forms"
+  [response & body]
+  `(if (instance? Throwable ~response)
+    (result/exception ~response)
+    (result/success (do ~@body))))
+
+(defn- track
+  "Tracks a query"
+  [config sql elapsed]
+  (println (str "PG[" (:service-name config) "] " (int elapsed) "ms - " sql)))
+
+(defmacro async-go
+  "Wraps core.async/go and handles exceptions and tracks elasped time"
+  [config query & body]
+  `(async/go
+     (try
+       (let [start# (. System (nanoTime))
+             value# (do ~@body)
+             elapsed# (/ (double (- (. System (nanoTime)) start#)) 1000000.0)]
+         (track ~config ~query elapsed#)
+         value#)
+       (catch Throwable e#
+         (result/exception e#)))))
+
 (defn- upsert!
   "Updates or inserts a model"
   [new? model config]
@@ -38,13 +64,11 @@
 (defn save-model!
   "Saves a model to the datastore"
   [model config]
-  (async/go
+  (async-go config (str "upsert " (:table config))
     (let [to-create? (:_id model)
           model-with-id (idify model)
           response (async/<! (upsert! to-create? model-with-id config))]
-      (if (instance? Throwable response)
-        (result/exception response)
-        (result/success model-with-id)))))
+      (build-result response model-with-id))))
 
 (defn- convert-int
   "Converts the value to int, if needed"
@@ -66,26 +90,19 @@
               (rest query))
       query)))
 
-(defmacro build-result
-  "Verifies the response and short-circuit's it if it's an error/exception.
-  If it's ok, runs the given forms"
-  [response & body]
-  `(if (instance? Throwable ~response)
-    (result/exception ~response)
-    (result/success (do ~@body))))
-
 (defn query
   "Runs a query on the database"
   [raw-query config]
-  (async/go
-    (let [db (config/get-connection config)
-          response (async/<! (query! db (build-query raw-query config)))]
-      (build-result response (map #(:model %) response)))))
+  (let [raw-query (build-query raw-query config)]
+    (async-go config (first raw-query)
+      (let [db (config/get-connection config)
+            response (async/<! (query! db raw-query))]
+        (build-result response (map #(:model %) response))))))
 
 (defn count-models
   "Utility around count"
   [raw-query config]
-  (async/go
+  (async-go config (first raw-query)
     (let [db (config/get-connection config)
           response (async/<! (query! db (build-query raw-query config)))]
       (build-result response (:count (first response))))))
@@ -93,7 +110,7 @@
 (defn delete-models
   "Utility around delete"
   [raw-query config]
-  (async/go
+  (async-go config (first raw-query)
     (let [db (config/get-connection config)
           response (async/<! (query! db raw-query))]
       (build-result response (:count (first response))))))
@@ -101,7 +118,7 @@
 (defn query-one
   "Runs a query on the database and returns only one model"
   [raw-query config]
-  (async/go
+  (async-go config (first raw-query)
     (let [db (config/get-connection config)
           response (async/<! (query! db raw-query))]
       (build-result response (:model (first response))))))
@@ -109,8 +126,8 @@
 (defn get-model
   "Gets a model given its id"
   [model-id config]
-  (async/go
-    (let [sql (str "select model from " (:table config) " where id = $1")
-          db (config/get-connection config)
-          response (async/<! (query! db [sql model-id]))]
-      (build-result response (:model (first response))))))
+  (let [sql (str "select model from " (:table config) " where id = $1")]
+    (async-go config sql
+      (let [db (config/get-connection config)
+            response (async/<! (query! db [sql model-id]))]
+        (build-result response (:model (first response)))))))

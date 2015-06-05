@@ -112,6 +112,7 @@
 (deftest delete-data
   (let [users (take 10 (repeatedly create-user))
         users-saved (mapv #(<!! (core/save-model! % {:table table
+                                                     :service-name "delete-data"
                                                      :fields {:email (:email %)}})) users)]
 
     (testing "count"
