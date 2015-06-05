@@ -16,16 +16,14 @@
 (defn jdbc-str-to-map
   "Converts a jdbc string to a map"
   [conn-str]
-  #_(let [parts (re-find #"^jdbc:postgresql://(.+):(\d+)/(.*)\?(.*)" (conn-str))
+  (let [parts (re-find #"^jdbc:postgresql://(.+):(\d+)/(.*)\?(.*)" conn-str)
         query-str (nth parts 4)
         raw-query (clojure.string/split query-str #"&")
         query-parts (reduce split-query-params {} raw-query)]
     (merge query-parts {:hostname (nth parts 1)
                         :username (:user query-parts)
                         :port (Integer/parseInt (nth parts 2))
-                        :database (nth parts 3)}))
-
-  )
+                        :database (nth parts 3)})))
 
 (defn- resolve-db-config
   "Gets the database configuration to use"
