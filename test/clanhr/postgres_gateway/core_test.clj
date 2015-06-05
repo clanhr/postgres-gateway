@@ -109,4 +109,23 @@
         (is (result/succeeded? page))
         (is (= 3 (count (:data page))))))))
 
+(deftest delete-data
+  (let [users (take 10 (repeatedly create-user))
+        users-saved (mapv #(<!! (core/save-model! % {:table table
+                                                     :fields {:email (:email %)}})) users)]
+
+    (testing "count"
+      (let [total (<!! (core/count-models [(str "select count(*) from " table)] {:table table}))]
+        (is (result/succeeded? total))
+        (is (= 10 (:data total)))))
+
+    (testing "delete all"
+      (let [result (<!! (core/delete-models [(str "delete from " table)] {:table table}))]
+        (is (result/succeeded? result))))
+
+    (testing "count again"
+      (let [total (<!! (core/count-models [(str "select count(*) from " table)] {:table table}))]
+        (is (result/succeeded? total))
+        (is (= 0 (:data total)))))))
+
 #_(run-tests)
