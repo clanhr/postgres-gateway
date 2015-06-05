@@ -45,7 +45,14 @@
                                              :fields {:email email}}))]
     (is (result/succeeded? result))
     (is (= email (:email result)))
-    (is (= (:name model) (:name result)))))
+    (is (= (:name model) (:name result)))
+
+    (testing "get-model"
+      (let [result (<!! (core/get-model (:_id result) {:db-config db-config
+                                                       :table table}))]
+        (is (result/succeeded? result))
+        (is (= (:name result) (:name model)))
+        (is (= (:email result) (:email model)))))))
 
 (deftest inserting-with-exception
   (let [result (<!! (core/save-model! {} {:db-config db-config

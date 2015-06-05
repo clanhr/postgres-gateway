@@ -15,7 +15,7 @@
                  [org.clojure/java.jdbc "0.3.2"]
                  [postgresql "9.1-901.jdbc4"]
                  [cheshire "5.5.0"]
-                 [clanhr/result "0.5.0"]
+                 [clanhr/result "0.6.0"]
                  [clanhr/analytics "0.5.0"]]
 
   :plugins [[lein-environ "1.0.0"]

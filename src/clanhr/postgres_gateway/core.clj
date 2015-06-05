@@ -1,28 +1,13 @@
 (ns clanhr.postgres-gateway.core
   "Async access utilities to postgres"
-  (require [postgres.async :refer :all]
+  (require [clanhr.postgres-gateway.custom-types]
+           [postgres.async :refer :all]
            [clojure.core.async :as async]
            [cheshire.core :as json]
            [result.core :as result]
            [result.core :as result]))
 
 (def ^:private default-config {:timeout 1000})
-
-(extend-protocol IPgParameter
-  clojure.lang.IPersistentMap
-  (to-pg-value [value]
-    (.getBytes (json/generate-string value))))
-
-(extend-protocol IPgParameter
-  java.util.UUID
-  (to-pg-value [uuid]
-    (.getBytes (.toString uuid) "UTF-8")))
-
-(defmethod from-pg-value com.github.pgasync.impl.Oid/JSON [oid value]
-  (json/parse-string (String. value) true))
-
-(defmethod from-pg-value com.github.pgasync.impl.Oid/UUID [oid value]
-  (java.util.UUID/fromString (String. ^bytes value "UTF-8")))
 
 (defn- split-query-params
   "Splits somethig like a=1 in {:a 1}"
@@ -91,3 +76,13 @@
         (result/exception response)
         (result/success model-with-id)))))
 
+(defn get-model
+  "Gets a model given its id"
+  [model-id config]
+  (async/go
+    (let [sql (str "select model from " (:table config) " where id = $1 ")
+          db (get-connection config)
+          response (async/<! (query! db [sql model-id]))]
+      (if (instance? Throwable response)
+        (result/exception response)
+        (result/success (:model (first response)))))))
