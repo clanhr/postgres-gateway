@@ -56,6 +56,16 @@
         (result/exception response)
         (result/success (map #(:model %) response))))))
 
+(defn query-one
+  "Runs a query on the database and returns only one model"
+  [raw-query config]
+  (async/go
+    (let [db (config/get-connection config)
+          response (async/<! (query! db raw-query))]
+      (if (instance? Throwable response)
+        (result/exception response)
+        (result/success (:model (first response)))))))
+
 (defn get-model
   "Gets a model given its id"
   [model-id config]

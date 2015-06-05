@@ -32,4 +32,4 @@
     (is (= "postgres" (:user data)))
     (is (= "wasabi" (:password data)))))
 
-(run-tests)
+#_(run-tests)

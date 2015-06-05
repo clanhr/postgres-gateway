@@ -47,6 +47,14 @@
         (is (= (:name result) (:name model)))
         (is (= (:email result) (:email model)))))
 
+    (testing "query-one"
+      (let [result (<!! (core/query-one [(str "select model from " table " where email = $1 ") email]
+                                        {:table table}))
+            data-model result]
+        (is (result/succeeded? result))
+        (is (= (:name data-model) (:name model)))
+        (is (= (:email data-model) (:email model)))))
+
     (testing "query"
       (let [result (<!! (core/query [(str "select model from " table " where email = $1 ") email]
                                     {:table table}))
@@ -72,5 +80,5 @@
     (is (result/succeeded? result2))
     (is (= (:_id result1) (:_id result2)))))
 
-(run-tests)
+#_(run-tests)
 
