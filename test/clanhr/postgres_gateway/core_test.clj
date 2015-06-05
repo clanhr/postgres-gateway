@@ -12,7 +12,7 @@
                 :port     (env :pg-port 5432)
                 :database (env :pg-database "postgres")
                 :username (env :pg-user "postgres")
-                :password (env :pg-password)
+                :password (env :pg-password "")
                 :pool-size 1})
 
 (defn- wait [channel]
