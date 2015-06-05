@@ -22,4 +22,14 @@
     (is (= user (:user data)))
     (is (= password (:password data)))))
 
+(deftest simple-localhost-conn
+  (let [conn-str "jdbc:postgresql://192.168.59.103:5432/postgres?user=postgres&password=wasabi"
+        data (config/jdbc-str-to-map conn-str)]
+    (is data)
+    (is (= "192.168.59.103" (:hostname data)))
+    (is (= 5432 (:port data)))
+    (is (= "postgres" (:database data)))
+    (is (= "postgres" (:user data)))
+    (is (= "wasabi" (:password data)))))
+
 (run-tests)
