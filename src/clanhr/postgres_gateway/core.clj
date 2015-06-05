@@ -76,17 +76,6 @@
         (result/exception response)
         (result/success model-with-id)))))
 
-(defn get-model
-  "Gets a model given its id"
-  [model-id config]
-  (async/go
-    (let [sql (str "select model from " (:table config) " where id = $1")
-          db (get-connection config)
-          response (async/<! (query! db [sql model-id]))]
-      (if (instance? Throwable response)
-        (result/exception response)
-        (result/success (:model (first response)))))))
-
 (defn query
   "Runs a query on the database"
   [raw-query config]
@@ -96,3 +85,16 @@
       (if (instance? Throwable response)
         (result/exception response)
         (result/success (map #(:model %) response))))))
+
+(defn get-model
+  "Gets a model given its id"
+  [model-id config]
+  (async/go
+    (let [sql (str "select model from " (:table config) " where id = $1")
+          db (get-connection config)
+
+          response (async/<! (query! db [sql model-id]))]
+      (if (instance? Throwable response)
+        (result/exception response)
+        (result/success (:model (first response)))))))
+
