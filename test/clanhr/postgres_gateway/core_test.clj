@@ -52,7 +52,17 @@
                                                        :table table}))]
         (is (result/succeeded? result))
         (is (= (:name result) (:name model)))
-        (is (= (:email result) (:email model)))))))
+        (is (= (:email result) (:email model)))))
+
+    (testing "query"
+      (let [result (<!! (core/query [(str "select model from " table " where email = $1 ") email]
+                                    {:db-config db-config :table table}))
+            data (:data result)
+            data-model (first data)]
+        (is (result/succeeded? result))
+        (is (= 1 (count data)))
+        (is (= (:name data-model) (:name model)))
+        (is (= (:email data-model) (:email model)))))))
 
 (deftest inserting-with-exception
   (let [result (<!! (core/save-model! {} {:db-config db-config
