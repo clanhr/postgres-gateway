@@ -1,5 +1,7 @@
 language: clojure
 lein: lein2
+jdk:
+  - oraclejdk8
 addons:
   postgresql: "9.4"
 before_script:
