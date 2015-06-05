@@ -46,12 +46,32 @@
         (result/exception response)
         (result/success model-with-id)))))
 
+(defn- convert-int
+  "Converts the value to int, if needed"
+  [raw]
+  (if (string? raw)
+    (Integer/parseInt raw)
+    raw))
+
+(defn- build-query
+  "Builds/edits the query with extra information"
+  [query config]
+  (let [sql (first query)
+        page (convert-int (:page config))
+        per-page (convert-int (:per-page config))]
+    (if page
+      (concat [(str sql
+                    " OFFSET " (* (- page 1) per-page)
+                    " LIMIT " (or per-page 10))]
+              (rest query))
+      query)))
+
 (defn query
   "Runs a query on the database"
   [raw-query config]
   (async/go
     (let [db (config/get-connection config)
-          response (async/<! (query! db raw-query))]
+          response (async/<! (query! db (build-query raw-query config)))]
       (if (instance? Throwable response)
         (result/exception response)
         (result/success (map #(:model %) response))))))
@@ -72,9 +92,7 @@
   (async/go
     (let [sql (str "select model from " (:table config) " where id = $1")
           db (config/get-connection config)
-
           response (async/<! (query! db [sql model-id]))]
       (if (instance? Throwable response)
         (result/exception response)
         (result/success (:model (first response)))))))
-

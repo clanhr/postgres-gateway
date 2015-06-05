@@ -32,6 +32,12 @@
 
 (use-fixtures :each db-fixture)
 
+(defn- create-user
+  "Creates a new user"
+  []
+  {:name "Bruce"
+   :email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")})
+
 (deftest inserting
   (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
         model {:name "Bruce" :email email}
@@ -80,5 +86,22 @@
     (is (result/succeeded? result2))
     (is (= (:_id result1) (:_id result2)))))
 
-#_(run-tests)
+(deftest query-pagination
+  (let [users (take 10 (repeatedly create-user))
+        users-saved (mapv #(<!! (core/save-model! % {:table table
+                                                     :fields {:email (:email %)}})) users)
+        all (<!! (core/query [(str "select model from " table)] {:table table}))]
+    (is (result/succeeded? all))
+    (is (= (count users) (count (:data all))))
 
+    (testing "pagination"
+      (let [page (<!! (core/query [(str "select model from " table)] {:table table :page 1 :per-page 3}))]
+        (is (result/succeeded? page))
+        (is (= 3 (count (:data page))))))
+
+    (testing "pagination with strs"
+      (let [page (<!! (core/query [(str "select model from " table)] {:table table :page "1" :per-page "3"}))]
+        (is (result/succeeded? page))
+        (is (= 3 (count (:data page))))))))
+
+#_(run-tests)
