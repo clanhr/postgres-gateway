@@ -2,18 +2,13 @@
   (:require [clojure.test :refer :all]
             [clojure.core.async :refer [<!! go]]
             [clanhr.postgres-gateway.core :as core]
+            [clanhr.postgres-gateway.config :as config]
             [postgres.async :refer :all]
             [environ.core :refer [env]]
             [result.core :as result]))
 
 (def ^:private ^:dynamic *db*)
 (def table "postgres_gateway_tests")
-(def db-config {:hostname (env :pg-host "localhost")
-                :port     (env :pg-port 5432)
-                :database (env :pg-database "postgres")
-                :username (env :pg-user "postgres")
-                :password (env :pg-password "")
-                :pool-size 1})
 
 (defn- wait [channel]
   (let [r (<!! channel)]
@@ -29,7 +24,7 @@
                            model json, email varchar(200))")])))
 
 (defn- db-fixture [f]
-  (binding [*db* (open-db db-config)]
+  (binding [*db* (config/create-connection)]
     (try
       (create-tables *db*)
       (f)
@@ -40,23 +35,21 @@
 (deftest inserting
   (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
         model {:name "Bruce" :email email}
-        result (<!! (core/save-model! model {:db-config db-config
-                                             :table table
+        result (<!! (core/save-model! model {:table table
                                              :fields {:email email}}))]
     (is (result/succeeded? result))
     (is (= email (:email result)))
     (is (= (:name model) (:name result)))
 
     (testing "get-model"
-      (let [result (<!! (core/get-model (:_id result) {:db-config db-config
-                                                       :table table}))]
+      (let [result (<!! (core/get-model (:_id result) {:table table}))]
         (is (result/succeeded? result))
         (is (= (:name result) (:name model)))
         (is (= (:email result) (:email model)))))
 
     (testing "query"
       (let [result (<!! (core/query [(str "select model from " table " where email = $1 ") email]
-                                    {:db-config db-config :table table}))
+                                    {:table table}))
             data (:data result)
             data-model (first data)]
         (is (result/succeeded? result))
@@ -65,19 +58,16 @@
         (is (= (:email data-model) (:email model)))))))
 
 (deftest inserting-with-exception
-  (let [result (<!! (core/save-model! {} {:db-config db-config
-                                          :table "does-not-exist"}))]
+  (let [result (<!! (core/save-model! {} {:table "does-not-exist"}))]
     (is (result/failed? result))))
 
 (deftest inserting-and-updating
   (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
         model {:name "Bruce" :email email}
-        result1 (<!! (core/save-model! model {:db-config db-config
-                                              :table table
+        result1 (<!! (core/save-model! model {:table table
                                               :fields {:email email}}))
-        result2 (<!! (core/save-model! result1 {:db-config db-config
-                                              :table table
-                                              :fields {:email email}}))]
+        result2 (<!! (core/save-model! result1 {:table table
+                                                :fields {:email email}}))]
     (is (result/succeeded? result1))
     (is (result/succeeded? result2))
     (is (= (:_id result1) (:_id result2)))))
