@@ -99,6 +99,11 @@
         (is (result/succeeded? page))
         (is (= 3 (count (:data page))))))
 
+    (testing "count"
+      (let [total (<!! (core/count-models [(str "select count(*) from " table)] {:table table}))]
+        (is (result/succeeded? total))
+        (is (= 10 (:data total)))))
+
     (testing "pagination with strs"
       (let [page (<!! (core/query [(str "select model from " table)] {:table table :page "1" :per-page "3"}))]
         (is (result/succeeded? page))

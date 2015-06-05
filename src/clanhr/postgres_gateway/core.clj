@@ -76,6 +76,16 @@
         (result/exception response)
         (result/success (map #(:model %) response))))))
 
+(defn count-models
+  "Utility around count"
+  [raw-query config]
+  (async/go
+    (let [db (config/get-connection config)
+          response (async/<! (query! db (build-query raw-query config)))]
+      (if (instance? Throwable response)
+        (result/exception response)
+        (result/success (:count (first response)))))))
+
 (defn query-one
   "Runs a query on the database and returns only one model"
   [raw-query config]
