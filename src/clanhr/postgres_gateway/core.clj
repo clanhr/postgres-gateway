@@ -66,15 +66,21 @@
               (rest query))
       query)))
 
+(defmacro build-result
+  "Verifies the response and short-circuit's it if it's an error/exception.
+  If it's ok, runs the given forms"
+  [response & body]
+  `(if (instance? Throwable ~response)
+    (result/exception ~response)
+    (result/success (do ~@body))))
+
 (defn query
   "Runs a query on the database"
   [raw-query config]
   (async/go
     (let [db (config/get-connection config)
           response (async/<! (query! db (build-query raw-query config)))]
-      (if (instance? Throwable response)
-        (result/exception response)
-        (result/success (map #(:model %) response))))))
+      (build-result response (map #(:model %) response)))))
 
 (defn count-models
   "Utility around count"
@@ -82,9 +88,7 @@
   (async/go
     (let [db (config/get-connection config)
           response (async/<! (query! db (build-query raw-query config)))]
-      (if (instance? Throwable response)
-        (result/exception response)
-        (result/success (:count (first response)))))))
+      (build-result response (:count (first response))))))
 
 (defn delete-models
   "Utility around delete"
@@ -92,9 +96,7 @@
   (async/go
     (let [db (config/get-connection config)
           response (async/<! (query! db raw-query))]
-      (if (instance? Throwable response)
-        (result/exception response)
-        (result/success (:count (first response)))))))
+      (build-result response (:count (first response))))))
 
 (defn query-one
   "Runs a query on the database and returns only one model"
@@ -102,9 +104,7 @@
   (async/go
     (let [db (config/get-connection config)
           response (async/<! (query! db raw-query))]
-      (if (instance? Throwable response)
-        (result/exception response)
-        (result/success (:model (first response)))))))
+      (build-result response (:model (first response))))))
 
 (defn get-model
   "Gets a model given its id"
@@ -113,6 +113,4 @@
     (let [sql (str "select model from " (:table config) " where id = $1")
           db (config/get-connection config)
           response (async/<! (query! db [sql model-id]))]
-      (if (instance? Throwable response)
-        (result/exception response)
-        (result/success (:model (first response)))))))
+      (build-result response (:model (first response))))))
