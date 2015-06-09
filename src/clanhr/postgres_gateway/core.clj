@@ -68,9 +68,12 @@
     (let [to-create? (:_id model)
           model-with-id (idify model)
           response (async/<! (upsert! to-create? model-with-id config))]
-      (if (not= 1 (:updated response))
-        (result/failure "Model not updated (maybe not found?)")
-        (build-result response model-with-id)))))
+      (if (or (instance? Throwable response) (= 1 (:updated response)))
+        (build-result response model-with-id)
+        (if (get-in config [:save-options :insert-if-not-found])
+          (let [response (async/<! (upsert! true model-with-id config))]
+            (build-result response  model-with-id))
+          (result/failure "Model not updated (maybe not found?)"))))))
 
 (defn convert-int
   "Converts the value to int, if needed"
@@ -132,6 +135,6 @@
     (async-go config sql
       (let [db (config/get-connection config)
             response (async/<! (query! db [sql model-id]))]
-        (if (not= 1 (:updated response))
-          (result/failure "Not found")
-          (build-result response (:model (first response))))))))
+        (if (or (instance? Throwable response) (= 1 (count response)))
+          (build-result response (:model (first response)))
+          (result/failure "Not found"))))))

@@ -82,6 +82,14 @@
                                       {:table table}))]
     (is (result/failed? result))))
 
+(deftest updating-non-existent-forced
+  (let [result (<!! (core/save-model! {:_id (java.util.UUID/randomUUID)
+                                       :name "Test"
+                                       :email "failing@lanhr.com"}
+                                      {:table table
+                                       :save-options {:insert-if-not-found true}}))]
+    (is (result/succeeded? result))))
+
 (deftest getting-non-existent
   (let [result (<!! (core/get-model (java.util.UUID/randomUUID)
                                     {:table table}))]
