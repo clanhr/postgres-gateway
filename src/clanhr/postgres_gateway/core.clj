@@ -52,12 +52,12 @@
 
 (defn- upsert!
   "Updates or inserts a model"
-  [new? model config]
+  [update? model config]
   (let [db (config/get-connection config)
         uuid (:_id model)
         fields (build-fields model config)
         sql-spec {:table (:table config) :returning "id"}]
-      (if new?
+      (if update?
         (update! db (assoc sql-spec :where ["id = $1" uuid]) fields)
         (insert! db sql-spec fields))))
 
@@ -65,13 +65,13 @@
   "Saves a model to the datastore"
   [model config]
   (async-go config (str "upsert " (:table config))
-    (let [to-create? (:_id model)
+    (let [to-update? (:_id model)
           model-with-id (idify model)
-          response (async/<! (upsert! to-create? model-with-id config))]
+          response (async/<! (upsert! to-update? model-with-id config))]
       (if (or (instance? Throwable response) (= 1 (:updated response)))
         (build-result response model-with-id)
         (if (get-in config [:save-options :insert-if-not-found])
-          (let [response (async/<! (upsert! true model-with-id config))]
+          (let [response (async/<! (upsert! false model-with-id config))]
             (build-result response  model-with-id))
           (result/failure "Model not updated (maybe not found?)"))))))
 
