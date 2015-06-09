@@ -126,7 +126,9 @@
   (async-go config (first raw-query)
     (let [db (config/get-connection config)
           response (async/<! (query! db raw-query))]
-      (build-result response (:model (first response))))))
+      (if (or (instance? Throwable response) (= 1 (count response)))
+        (build-result response (:model (first response)))
+        (result/failure "Not found")))))
 
 (defn get-model
   "Gets a model given its id"
