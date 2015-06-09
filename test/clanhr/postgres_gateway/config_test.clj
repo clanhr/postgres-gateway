@@ -32,4 +32,11 @@
     (is (= "postgres" (:user data)))
     (is (= "wasabi" (:password data)))))
 
+(deftest ssl-mode
+  (let [conn-str "jdbc:postgresql://192.168.59.103:5432/postgres?user=postgres&password=wasabi&sslmode=require"
+        data (config/jdbc-str-to-map conn-str)]
+    (is (= true (:ssl data)))))
+
+
+
 #_(run-tests)

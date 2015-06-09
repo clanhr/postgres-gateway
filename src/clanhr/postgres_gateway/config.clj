@@ -21,6 +21,7 @@
         raw-query (clojure.string/split query-str #"&")
         query-parts (reduce split-query-params {} raw-query)]
     (merge query-parts {:hostname (nth parts 1)
+                        :ssl (= "require" (:sslmode query-parts))
                         :username (:user query-parts)
                         :port (Integer/parseInt (nth parts 2))
                         :database (nth parts 3)})))
