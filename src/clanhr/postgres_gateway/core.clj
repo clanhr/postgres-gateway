@@ -132,4 +132,6 @@
     (async-go config sql
       (let [db (config/get-connection config)
             response (async/<! (query! db [sql model-id]))]
-        (build-result response (:model (first response)))))))
+        (if (not= 1 (:updated response))
+          (result/failure "Not found")
+          (build-result response (:model (first response))))))))

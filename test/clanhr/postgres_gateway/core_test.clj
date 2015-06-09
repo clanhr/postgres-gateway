@@ -82,6 +82,11 @@
                                       {:table table}))]
     (is (result/failed? result))))
 
+(deftest getting-non-existent
+  (let [result (<!! (core/get-model (java.util.UUID/randomUUID)
+                                    {:table table}))]
+    (is (result/failed? result))))
+
 (deftest inserting-and-updating
   (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
         model {:name "Bruce" :email email}
