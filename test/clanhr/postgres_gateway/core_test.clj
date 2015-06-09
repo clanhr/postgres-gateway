@@ -75,6 +75,13 @@
   (let [result (<!! (core/save-model! {} {:table "does-not-exist"}))]
     (is (result/failed? result))))
 
+(deftest updating-non-existent
+  (let [result (<!! (core/save-model! {:_id (java.util.UUID/randomUUID)
+                                       :name "Test"
+                                       :email "failing@lanhr.com"}
+                                      {:table table}))]
+    (is (result/failed? result))))
+
 (deftest inserting-and-updating
   (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
         model {:name "Bruce" :email email}

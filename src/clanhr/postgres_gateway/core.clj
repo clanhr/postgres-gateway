@@ -68,9 +68,11 @@
     (let [to-create? (:_id model)
           model-with-id (idify model)
           response (async/<! (upsert! to-create? model-with-id config))]
-      (build-result response model-with-id))))
+      (if (not= 1 (:updated response))
+        (result/failure "Model not updated (maybe not found?)")
+        (build-result response model-with-id)))))
 
-(defn- convert-int
+(defn convert-int
   "Converts the value to int, if needed"
   [raw]
   (if (string? raw)
