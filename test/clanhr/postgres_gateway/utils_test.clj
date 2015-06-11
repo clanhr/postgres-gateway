@@ -12,3 +12,7 @@
   (is (nil? (utils/array-column-value nil)))
   (is (= "{waza}" (utils/array-column-value "waza")))
   (is (= "{waza,bi}" (utils/array-column-value ["waza" "bi"]))))
+
+(deftest like-value
+  (is (= "" (utils/like-value nil)))
+  (is (= "%waza%" (utils/like-value "waza"))))

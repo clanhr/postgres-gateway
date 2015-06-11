@@ -13,3 +13,10 @@
     (nil? coll) nil
     (coll? coll) (str "{" (clojure.string/join "," coll)  "}")
     :else (str "{" coll "}")))
+
+(defn like-value
+  "Transforms into a postgres like value"
+  [raw]
+  (if raw
+    (str "%" raw "%")
+    ""))
