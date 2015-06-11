@@ -71,6 +71,22 @@
         (is (= (:name data-model) (:name model)))
         (is (= (:email data-model) (:email model)))))))
 
+(deftest bulk-inserting
+  (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
+        model1 {:name "Bruce" :email email}
+        model2 {:name "Norris" :email email}
+        models [model1 model2]
+        results (<!! (core/bulk-save-models! models {:table table
+                                                     :fields {:email email}}))]
+
+    (testing "query"
+      (let [result (<!! (core/query [(str "select model from " table " where email = $1 ") email]
+                                    {:table table}))
+            data (:data result)
+            data-model (first data)]
+        (is (result/succeeded? result))
+        (is (= 2 (count data)))))))
+
 (deftest inserting-with-exception
   (let [result (<!! (core/save-model! {} {:table "does-not-exist"}))]
     (is (result/failed? result))))
