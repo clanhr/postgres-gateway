@@ -1,4 +1,4 @@
-(defproject clanhr/postgres-gateway "0.7.1"
+(defproject clanhr/postgres-gateway "0.7.2"
   :description "ClanHR postgres-gateway"
   :url "https://github.com/clanhr/postgres-gateway"
 
@@ -11,7 +11,7 @@
 
   :dependencies [[environ "1.0.0"]
                  [org.clojure/clojure "1.7.0-RC1"]
-                 [alaisi/postgres.async "0.5.0"]
+                 [alaisi/postgres.async "0.6.0"]
                  [cheshire "5.5.0"]
                  [clanhr/result "0.6.0"]
                  [clanhr/analytics "0.5.0"]]
