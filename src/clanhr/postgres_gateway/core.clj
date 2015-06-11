@@ -75,14 +75,19 @@
             (build-result response  model-with-id))
           (result/failure "Model not updated (maybe not found?)"))))))
 
+(defn- prepare-fields-fn
+  "If a fields-fn function is provided, it will be called per field
+  to resolve the fields for the model"
+  [config model]
+  (if-let [fields-fn (:fields-fn config)]
+    (fields-fn model)))
+
 (defn- model-save-chan
   "Prepares and persists a model"
   [config model]
-  (let [new-fields (reduce (fn [obj field]
-                             (assoc obj field (field model)))
-                           {}
-                           (:fields config))]
-    (save-model! model (assoc config :fields new-fields))))
+  (if-let [new-fields (prepare-fields-fn config model)]
+    (save-model! model (assoc config :fields new-fields))
+    (save-model! model config)))
 
 (defn bulk-save-models!
   "Saves a collection for models.

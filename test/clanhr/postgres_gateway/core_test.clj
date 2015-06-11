@@ -77,7 +77,7 @@
         model2 {:name "Norris" :email email}
         models [model1 model2]
         results (<!! (core/bulk-save-models! models {:table table
-                                                     :fields [:email]}))]
+                                                     :fields-fn (fn [model] {:email (:email model)})}))]
 
     (testing "query"
       (let [result (<!! (core/query [(str "select model from " table " where email = $1 ") email]
