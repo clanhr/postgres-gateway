@@ -75,12 +75,21 @@
             (build-result response  model-with-id))
           (result/failure "Model not updated (maybe not found?)"))))))
 
+(defn- model-save-chan
+  "Prepares and persists a model"
+  [config model]
+  (let [new-fields (reduce (fn [obj field]
+                             (assoc obj field (field model)))
+                           {}
+                           (:fields config))]
+    (save-model! model (assoc config :fields new-fields))))
+
 (defn bulk-save-models!
   "Saves a collection for models.
   TODO: fully async and in a transaction"
   [models config]
   (async-go config (str "bulk upsert " (:table config))
-    (let [chans (map #(save-model! % config) models)]
+    (let [chans (map (partial model-save-chan config) models)]
       (mapv (fn [chan] (async/<!! chan)) chans))))
 
 (defn convert-int
