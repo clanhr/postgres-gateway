@@ -20,3 +20,11 @@
   (if raw
     (str "%" raw "%")
     ""))
+
+(defn in-str-coll-value
+  "Transforms into a postgres in collection value"
+  [coll]
+  (if (coll? coll)
+    (let [quoted (map #(str "'" % "'") coll)]
+      (str "(" (clojure.string/join "," quoted) ")"))
+    (str "('"coll"')")))

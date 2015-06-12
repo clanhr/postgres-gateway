@@ -16,3 +16,8 @@
 (deftest like-value
   (is (= "" (utils/like-value nil)))
   (is (= "%waza%" (utils/like-value "waza"))))
+
+(deftest in-coll-value
+  (is (= "('waza')" (utils/in-str-coll-value "waza")))
+  (is (= "('waza','bi')" (utils/in-str-coll-value ["waza" "bi"]))))
+
