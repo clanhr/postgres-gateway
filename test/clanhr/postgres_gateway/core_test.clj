@@ -165,4 +165,15 @@
         (is (result/succeeded? total))
         (is (= 0 (:data total)))))))
 
+(deftest query-in-param
+  (let [users [{:name "Bruce" :email "a@a.pt"}
+               {:name "Norris" :email "b@b.pt"}]
+        users-saved (mapv #(<!! (core/save-model! % {:table table
+                                                     :fields {:email (:email %)}})) users)
+        all (<!! (core/query [(str "select model from " table
+                                   " where email in ($1)") ["a@a.pt" "b@b.pt"]]
+                             {:table table :in-param 1}))]
+    (is (result/succeeded? all))
+    (is (= (count users) (count (:data all))))))
+
 #_(run-tests)
