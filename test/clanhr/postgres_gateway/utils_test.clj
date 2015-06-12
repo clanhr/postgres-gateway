@@ -18,6 +18,6 @@
   (is (= "%waza%" (utils/like-value "waza"))))
 
 (deftest in-coll-value
-  (is (= "('waza')" (utils/in-str-coll-value "waza")))
-  (is (= "('waza','bi')" (utils/in-str-coll-value ["waza" "bi"]))))
+  (is (= "'waza'" (utils/in-str-coll-value "waza")))
+  (is (= "'waza','bi'" (utils/in-str-coll-value ["waza" "bi"]))))
 

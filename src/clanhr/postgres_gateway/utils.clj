@@ -26,5 +26,5 @@
   [coll]
   (if (coll? coll)
     (let [quoted (map #(str "'" % "'") coll)]
-      (str "(" (clojure.string/join "," quoted) ")"))
-    (str "('"coll"')")))
+      (clojure.string/join "," quoted))
+    (str "'"coll"'")))
