@@ -52,7 +52,6 @@
 (defn add-in-logic
   "Injects in logic"
   [query config]
-  (println query)
   (if-let [param-num (:in-param config)]
     (let [idx param-num
           elems (nth query idx)
