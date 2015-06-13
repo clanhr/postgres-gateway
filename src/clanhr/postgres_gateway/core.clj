@@ -3,6 +3,7 @@
   (require [clanhr.postgres-gateway.custom-types]
            [clanhr.postgres-gateway.config :as config]
            [clanhr.postgres-gateway.utils :as utils]
+           [clanhr.analytics.metrics :as metrics]
            [postgres.async :refer :all]
            [clojure.core.async :as async]
            [cheshire.core :as json]
@@ -36,7 +37,10 @@
 (defn- track
   "Tracks a query"
   [config sql elapsed]
-  (println (str "PG[" (:service-name config) "] " (int elapsed) "ms - " sql)))
+  (metrics/postgres-request (:env-name config)
+                            (:service-name config)
+                            (int elapsed)
+                            sql))
 
 (defmacro async-go
   "Wraps core.async/go and handles exceptions and tracks elasped time"
