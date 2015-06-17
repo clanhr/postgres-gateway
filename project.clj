@@ -14,11 +14,7 @@
                  [alaisi/postgres.async "0.6.0"]
                  [cheshire "5.5.0"]
                  [clanhr/result "0.6.0"]
-<<<<<<< HEAD
                  [clanhr/analytics "1.1.0"]]
-=======
-                 [clanhr/analytics "0.6.3"]]
->>>>>>> master
 
   :plugins [[lein-environ "1.0.0"]
             [lein-ancient "0.6.5"]]
