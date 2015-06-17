@@ -11,13 +11,6 @@
   (to-pg-value [value]
     (.getBytes (json/generate-string value))))
 
-(extend-protocol IPgParameter
-  java.util.UUID
-  (to-pg-value [uuid]
-    (.getBytes (.toString uuid) "UTF-8")))
-
 (defmethod from-pg-value com.github.pgasync.impl.Oid/JSON [oid value]
   (json/parse-string (String. value) true))
 
-(defmethod from-pg-value com.github.pgasync.impl.Oid/UUID [oid value]
-  (java.util.UUID/fromString (String. ^bytes value "UTF-8")))

@@ -16,3 +16,11 @@
 (deftest like-value
   (is (= "" (utils/like-value nil)))
   (is (= "%waza%" (utils/like-value "waza"))))
+
+(deftest in-coll-value
+  (is (= "'waza'" (utils/in-str-coll-value "waza")))
+  (is (= "'waza','bi'" (utils/in-str-coll-value ["waza" "bi"]))))
+
+(deftest add-in-logic
+  (is (= (utils/add-in-logic ["name in ($1)" ["a" "b"]] {:in-param 1})
+         ["name in ($1,$2)" "a" "b"])))

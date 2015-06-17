@@ -2,6 +2,8 @@
   "Async access utilities to postgres"
   (require [clanhr.postgres-gateway.custom-types]
            [clanhr.postgres-gateway.config :as config]
+           [clanhr.postgres-gateway.utils :as utils]
+           [clanhr.analytics.metrics :as metrics]
            [postgres.async :refer :all]
            [clojure.core.async :as async]
            [clanhr.analytics.errors :as errors]
@@ -36,7 +38,10 @@
 (defn- track
   "Tracks a query"
   [config sql elapsed]
-  (println (str "PG[" (:service-name config) "] " (int elapsed) "ms - " sql)))
+  (metrics/postgres-request (:env-name config)
+                            (:service-name config)
+                            (int elapsed)
+                            sql))
 
 (defmacro async-go
   "Wraps core.async/go and handles exceptions and tracks elasped time"
@@ -99,25 +104,12 @@
     (let [chans (map (partial model-save-chan config) models)]
       (mapv (fn [chan] (async/<!! chan)) chans))))
 
-(defn convert-int
-  "Converts the value to int, if needed"
-  [raw]
-  (if (string? raw)
-    (Integer/parseInt raw)
-    raw))
-
 (defn- build-query
   "Builds/edits the query with extra information"
   [query config]
-  (let [sql (first query)
-        page (convert-int (:page config))
-        per-page (convert-int (:per-page config))]
-    (if page
-      (concat [(str sql
-                    " OFFSET " (* (- page 1) per-page)
-                    " LIMIT " (or per-page 10))]
-              (rest query))
-      query)))
+  (-> query
+      (utils/add-page-logic config)
+      (utils/add-in-logic config)))
 
 (defn query
   "Runs a query on the database"
