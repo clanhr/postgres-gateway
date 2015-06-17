@@ -1,4 +1,4 @@
-(defproject clanhr/postgres-gateway "0.7.9"
+(defproject clanhr/postgres-gateway "0.8.0"
   :description "ClanHR postgres-gateway"
   :url "https://github.com/clanhr/postgres-gateway"
 
@@ -14,7 +14,7 @@
                  [alaisi/postgres.async "0.6.0"]
                  [cheshire "5.5.0"]
                  [clanhr/result "0.6.0"]
-                 [clanhr/analytics "0.6.3"]]
+                 [clanhr/analytics "1.1.0"]]
 
   :plugins [[lein-environ "1.0.0"]
             [lein-ancient "0.6.5"]]
