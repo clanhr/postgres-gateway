@@ -4,6 +4,7 @@
            [clanhr.postgres-gateway.config :as config]
            [postgres.async :refer :all]
            [clojure.core.async :as async]
+           [clanhr.analytics.errors :as errors]
            [cheshire.core :as json]
            [result.core :as result]))
 
@@ -27,9 +28,9 @@
 (defmacro build-result
   "Verifies the response and short-circuit's it if it's an error/exception.
   If it's ok, runs the given forms"
-  [response & body]
+  [config query response & body]
   `(if (instance? Throwable ~response)
-    (result/exception ~response)
+    (errors/exception ~response {:config ~config :query ~query})
     (result/success (do ~@body))))
 
 (defn- track
@@ -48,7 +49,7 @@
          (track ~config ~query elapsed#)
          value#)
        (catch Throwable e#
-         (result/exception e#)))))
+         (errors/exception e# {:query ~query :config ~config})))))
 
 (defn- upsert!
   "Updates or inserts a model"
@@ -64,16 +65,17 @@
 (defn save-model!
   "Saves a model to the datastore"
   [model config]
-  (async-go config (str "upsert " (:table config))
-    (let [to-update? (:_id model)
-          model-with-id (idify model)
-          response (async/<! (upsert! to-update? model-with-id config))]
-      (if (or (instance? Throwable response) (= 1 (:updated response)))
-        (build-result response model-with-id)
-        (if (get-in config [:save-options :insert-if-not-found])
-          (let [response (async/<! (upsert! false model-with-id config))]
-            (build-result response  model-with-id))
-          (result/failure "Model not updated (maybe not found?)"))))))
+  (let [sql (str "upsert " (:table config))]
+    (async-go config sql
+      (let [to-update? (:_id model)
+            model-with-id (idify model)
+            response (async/<! (upsert! to-update? model-with-id config))]
+        (if (or (instance? Throwable response) (= 1 (:updated response)))
+          (build-result config sql response model-with-id)
+          (if (get-in config [:save-options :insert-if-not-found])
+            (let [response (async/<! (upsert! false model-with-id config))]
+              (build-result config sql response  model-with-id))
+            (result/failure "Model not updated (maybe not found?)")))))))
 
 (defn- prepare-fields-fn
   "If a fields-fn function is provided, it will be called per field
@@ -124,7 +126,7 @@
     (async-go config (first raw-query)
       (let [db (config/get-connection config)
             response (async/<! (query! db raw-query))]
-        (build-result response (map #(:model %) response))))))
+        (build-result config raw-query response (map #(:model %) response))))))
 
 (defn count-models
   "Utility around count"
@@ -132,7 +134,7 @@
   (async-go config (first raw-query)
     (let [db (config/get-connection config)
           response (async/<! (query! db (build-query raw-query config)))]
-      (build-result response (:count (first response))))))
+      (build-result config raw-query response (:count (first response))))))
 
 (defn delete-models
   "Utility around delete"
@@ -140,7 +142,7 @@
   (async-go config (first raw-query)
     (let [db (config/get-connection config)
           response (async/<! (query! db raw-query))]
-      (build-result response (:count (first response))))))
+      (build-result config raw-query response (:count (first response))))))
 
 (defn query-one
   "Runs a query on the database and returns only one model"
@@ -149,7 +151,7 @@
     (let [db (config/get-connection config)
           response (async/<! (query! db raw-query))]
       (if (or (instance? Throwable response) (= 1 (count response)))
-        (build-result response (:model (first response)))
+        (build-result config raw-query response (:model (first response)))
         (result/failure "Not found")))))
 
 (defn get-model
@@ -160,5 +162,5 @@
       (let [db (config/get-connection config)
             response (async/<! (query! db [sql model-id]))]
         (if (or (instance? Throwable response) (= 1 (count response)))
-          (build-result response (:model (first response)))
+          (build-result config sql response (:model (first response)))
           (result/failure "Not found"))))))
