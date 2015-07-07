@@ -18,7 +18,7 @@
   "Transforms into a postgres like value"
   [raw]
   (if raw
-    (str "%" raw "%")
+    (str "%" (clojure.string/replace raw " " "%") "%")
     ""))
 
 (defn in-str-coll-value
