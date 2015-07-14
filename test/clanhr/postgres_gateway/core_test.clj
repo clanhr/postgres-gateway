@@ -21,7 +21,8 @@
   (wait (execute! db [(str "drop table if exists " table)]))
   (wait (execute! db [(str "create table " table " (
                            id uuid primary key default uuid_generate_v4(),
-                           model json, email varchar(200))")])))
+                           model jsonb,
+                           email varchar(200))")])))
 
 (defn- db-fixture [f]
   (binding [*db* (config/get-connection)]
