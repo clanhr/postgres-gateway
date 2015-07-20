@@ -145,7 +145,7 @@
           response (async/<! (query! db raw-query))]
       (if (or (instance? Throwable response) (= 1 (count response)))
         (build-result config raw-query response (:model (first response)))
-        (result/failure {:data "Not found"
+        (result/failure {:data (str "Expected 1 result, but got " (count response))
                          :query raw-query})))))
 
 (defn get-model
