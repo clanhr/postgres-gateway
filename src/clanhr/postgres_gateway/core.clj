@@ -70,7 +70,8 @@
 (defn save-model!
   "Saves a model to the datastore"
   [model config]
-  (let [sql (str "upsert " (:table config))]
+  (let [table-name (:table config)
+        sql (str "upsert " table-name)]
     (async-go config sql
       (let [to-update? (:_id model)
             model-with-id (idify model)
@@ -80,7 +81,7 @@
           (if (get-in config [:save-options :insert-if-not-found])
             (let [response (async/<! (upsert! false model-with-id config))]
               (build-result config sql response  model-with-id))
-            (result/failure "Model not updated (maybe not found?)")))))))
+            (result/failure (str "Model " table-name " with id '" (:_id model) "' not updated (maybe not found?)"))))))))
 
 (defn- prepare-fields-fn
   "If a fields-fn function is provided, it will be called per field
@@ -144,15 +145,17 @@
           response (async/<! (query! db raw-query))]
       (if (or (instance? Throwable response) (= 1 (count response)))
         (build-result config raw-query response (:model (first response)))
-        (result/failure "Not found")))))
+        (result/failure {:data "Not found"
+                         :query raw-query})))))
 
 (defn get-model
   "Gets a model given its id"
   [model-id config]
-  (let [sql (str "select model from " (:table config) " where id = $1")]
+  (let [table-name (:table config)
+        sql (str "select model from " table-name " where id = $1")]
     (async-go config sql
       (let [db (config/get-connection config)
             response (async/<! (query! db [sql model-id]))]
         (if (or (instance? Throwable response) (= 1 (count response)))
           (build-result config sql response (:model (first response)))
-          (result/failure "Not found"))))))
+          (result/failure (str "Can't find " table-name " with id '" model-id "'")))))))
