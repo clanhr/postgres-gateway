@@ -73,7 +73,7 @@
   (let [table-name (:table config)
         sql (str "upsert " table-name)]
     (async-go config sql
-      (let [to-update? (:_id model)
+      (let [to-update? (and (:_id model) (not (:insert config)))
             model-with-id (idify model)
             response (async/<! (upsert! to-update? model-with-id config))]
         (if (or (instance? Throwable response) (= 1 (:updated response)))
