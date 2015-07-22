@@ -175,4 +175,12 @@
     (is (result/succeeded? all))
     (is (= (count users) (count (:data all))))))
 
+(deftest force-inserting
+  (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
+        model {:name "Bruce" :email email :_id (java.util.UUID/randomUUID)}
+        result (<!! (core/save-model! model {:table table
+                                             :insert true
+                                             :fields {:email email}}))]
+    (result/succeeded? result)))
+
 #_(run-tests)
