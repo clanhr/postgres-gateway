@@ -40,9 +40,8 @@
 (deftest begin-transaction-test
   (let [conn-str "jdbc:postgresql://192.168.59.103:5432/postgres?user=postgres&password=wasabi"
         data (config/jdbc-str-to-map conn-str)
-        db (config/create-connection)
+        db (config/create-connection data)
         tx (config/begin db)]
-    (is tx)
-    (println "TRANSACTION: " tx)))
+    (is tx)))
 
 #_(run-tests)

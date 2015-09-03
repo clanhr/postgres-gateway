@@ -54,13 +54,13 @@
                        (create-connection config))))))
 
 (defn begin
-  [& db]
+  [db]
   (begin! db))
 
 (defn commit
-  [& db]
+  [db]
   (commit! db))
 
 (defn rollback
-  [& db]
+  [db]
   (rollback! db))
