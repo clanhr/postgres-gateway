@@ -52,15 +52,3 @@
                     (if pool
                        pool
                        (create-connection config))))))
-
-(defn begin
-  [db]
-  (begin! db))
-
-(defn commit
-  [db]
-  (commit! db))
-
-(defn rollback
-  [db]
-  (rollback! db))
