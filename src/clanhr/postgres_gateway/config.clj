@@ -52,3 +52,21 @@
                     (if pool
                        pool
                        (create-connection config))))))
+
+(defn begin
+  [conn]
+  (let [data (jdbc-str-to-map conn)
+        db (create-connection data)]
+    (begin! db)))
+
+(defn commit
+  [conn]
+  (let [data (jdbc-str-to-map conn)
+        db (create-connection data)]
+    (commit! db)))
+
+(defn rollback
+  [conn]
+  (let [data (jdbc-str-to-map conn)
+        db (create-connection data)]
+    (rollback! db)))

@@ -159,15 +159,3 @@
         (if (or (instance? Throwable response) (= 1 (count response)))
           (build-result config sql response (:model (first response)))
           (result/failure (str "Can't find " table-name " with id '" model-id "'")))))))
-
-(defn begin
-  [db]
-  (begin! db))
-
-(defn commit
-  [db]
-  (commit! db))
-
-(defn rollback
-  [db]
-  (rollback! db))
