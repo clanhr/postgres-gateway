@@ -54,19 +54,16 @@
                        (create-connection config))))))
 
 (defn begin
-  [conn]
-  (let [data (jdbc-str-to-map conn)
-        db (create-connection data)]
-    (begin! db)))
+  [config]
+  (let [conn (get-connection config)]
+    (begin! conn)))
 
 (defn commit
-  [conn]
-  (let [data (jdbc-str-to-map conn)
-        db (create-connection data)]
-    (commit! db)))
+  [config]
+  (let [conn (get-connection config)]
+    (commit! conn)))
 
 (defn rollback
-  [conn]
-  (let [data (jdbc-str-to-map conn)
-        db (create-connection data)]
-    (rollback! db)))
+  [config]
+  (let [conn (get-connection config)]
+    (rollback! conn)))

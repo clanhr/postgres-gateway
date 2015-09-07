@@ -37,9 +37,4 @@
         data (config/jdbc-str-to-map conn-str)]
     (is (= true (:ssl data)))))
 
-(deftest begin-transaction-test
-  (let [conn-str "jdbc:postgresql://192.168.59.103:5432/postgres?user=postgres&password=wasabi"
-        tx (config/begin conn-str)]
-    (is tx)))
-
 #_(run-tests)

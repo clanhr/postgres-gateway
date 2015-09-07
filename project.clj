@@ -1,4 +1,4 @@
-(defproject clanhr/postgres-gateway "0.9.6"
+(defproject clanhr/postgres-gateway "0.9.7"
   :description "ClanHR postgres-gateway"
   :url "https://github.com/clanhr/postgres-gateway"
 
