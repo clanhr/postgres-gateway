@@ -17,3 +17,7 @@
 (defmethod from-pg-value com.github.pgasync.impl.Oid/JSONB [oid value]
   (json/parse-string (String. value) true))
 
+(add-encoder
+  org.joda.time.DateTime
+  (fn [data jsonGenerator]
+    (.writeString jsonGenerator (coerce/to-string data))))
