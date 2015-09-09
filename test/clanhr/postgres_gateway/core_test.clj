@@ -23,8 +23,8 @@
   (wait (execute! db [(str "create table " table " (
                            id uuid primary key default uuid_generate_v4(),
                            model jsonb,
-                           email varchar(200)),
-                           updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP")])))
+                           email varchar(200),
+                           updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP)")])))
 
 (defn- db-fixture [f]
   (binding [*db* (config/get-connection)]
@@ -47,8 +47,8 @@
                                                       :updated_at (:updated-at model)}}))]
     (is (result/succeeded? result))
     (is (= email (:email result)))
-    (is (= (:updated-at model) (:updated-at result)))
     (is (= (:name model) (:name result)))
+    (is (= (:updated-at model) (:updated-at result)))
 
     (testing "get-model"
       (let [result (<!! (core/get-model (:_id result) {:table table}))]
