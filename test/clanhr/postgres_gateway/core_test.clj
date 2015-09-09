@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [clojure.core.async :refer [<!! go]]
             [clanhr.postgres-gateway.core :as core]
+            [clj-time.core :as t]
             [clanhr.postgres-gateway.config :as config]
             [postgres.async :refer :all]
             [environ.core :refer [env]]
@@ -22,7 +23,8 @@
   (wait (execute! db [(str "create table " table " (
                            id uuid primary key default uuid_generate_v4(),
                            model jsonb,
-                           email varchar(200))")])))
+                           email varchar(200)),
+                           updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP")])))
 
 (defn- db-fixture [f]
   (binding [*db* (config/get-connection)]
@@ -39,11 +41,13 @@
 
 (deftest inserting
   (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
-        model {:name "Bruce" :email email}
+        model {:name "Bruce" :email email :updated-at (t/now)}
         result (<!! (core/save-model! model {:table table
-                                             :fields {:email email}}))]
+                                             :fields {:email email
+                                                      :updated_at (:updated-at model)}}))]
     (is (result/succeeded? result))
     (is (= email (:email result)))
+    (is (= (:updated-at model) (:updated-at result)))
     (is (= (:name model) (:name result)))
 
     (testing "get-model"
