@@ -3,6 +3,8 @@
   (require [postgres.async :refer :all]
            [clojure.core.async :as async]
            [cheshire.core :as json]
+           [cheshire.generate :refer [add-encoder encode-str]]
+           [clj-time.coerce :as coerce]
            [result.core :as result]
            [result.core :as result]))
 
