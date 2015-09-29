@@ -168,6 +168,26 @@
         (is (result/succeeded? total))
         (is (= 0 (:data total)))))))
 
+(deftest update-data
+  (let [users (take 10 (repeatedly create-user))
+        users-saved (mapv #(<!! (core/save-model! % {:table table
+                                                     :service-name "update-data"
+                                                     :fields {:email (:email %)}})) users)]
+
+    (testing "count"
+      (let [total (<!! (core/count-models [(str "select count(*) from " table)] {:table table}))]
+        (is (result/succeeded? total))
+        (is (= 10 (:data total)))))
+
+    (testing "update all"
+      (let [result (<!! (core/update [(str "update " table " SET email=$1 where model->>'name'=$2") "noemail@mail.com" "Bruce"] {:table table}))]
+        (is (result/succeeded? result)))
+
+      (let [total (<!! (core/count-models [(str "select count(*) from " table " where email=$1") "noemail@mail.com"] {:table table}))]
+        (is (result/succeeded? total))
+        (is (= 10 (:data total)))))))
+
+
 (deftest query-in-param
   (let [users [{:name "Bruce" :email "a@a.pt"}
                {:name "Norris" :email "b@b.pt"}]

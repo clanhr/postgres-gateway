@@ -129,13 +129,22 @@
           response (async/<! (query! db (build-query raw-query config)))]
       (build-result config raw-query response (:count (first response))))))
 
-(defn delete-models
-  "Utility around delete"
+(defn query-return-number-of-affected-rows
   [raw-query config]
   (async-go config (first raw-query)
     (let [db (config/get-connection config)
           response (async/<! (query! db raw-query))]
       (build-result config raw-query response (:count (first response))))))
+
+(defn delete-models
+  "Utility around delete"
+  [raw-query config]
+  (query-return-number-of-affected-rows raw-query config))
+
+(defn update
+  "Utility around update"
+  [raw-query config]
+  (query-return-number-of-affected-rows raw-query config))
 
 (defn query-one
   "Runs a query on the database and returns only one model"
