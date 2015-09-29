@@ -134,8 +134,6 @@
   (async-go config (first raw-query)
     (let [db (config/get-connection config)
           response (async/<! (query! db raw-query))]
-      (println "RAW: " raw-query)
-      (println "RESPONDE: " response)
       (build-result config raw-query response (:count (first response))))))
 
 (defn delete-models
