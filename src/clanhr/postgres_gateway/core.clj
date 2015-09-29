@@ -141,7 +141,7 @@
   [raw-query config]
   (query-return-number-of-affected-rows raw-query config))
 
-(defn update
+(defn update-models
   "Utility around update"
   [raw-query config]
   (query-return-number-of-affected-rows raw-query config))
