@@ -180,8 +180,11 @@
         (is (= 10 (:data total)))))
 
     (testing "update all"
-      (let [result (<!! (core/delete-models [(str "update " table " SET  email=noemail@mail.com")] {:table table}))]
-        (is (result/succeeded? result))
+      (let [result (<!! (core/update [(str "update " table " SET email=$1 where model->>'name'=$2") "noemail@mail.com" "Bruce"] {:table table}))]
+        (is (result/succeeded? result)))
+
+      (let [total (<!! (core/count-models [(str "select count(*) from " table " where email=$1") "noemail@mail.com"] {:table table}))]
+        (is (result/succeeded? total))
         (is (= 10 (:data total)))))))
 
 
