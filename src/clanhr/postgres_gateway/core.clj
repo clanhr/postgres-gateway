@@ -91,7 +91,6 @@
     (async-go config sql
       (let [model-with-id (idify model)
             response (async/<! (upsert! false model-with-id config))]
-        (println "RESPONSE: " response)
         (when (or (instance? Throwable response) (= 1 (:updated response)))
           (build-result config sql response model-with-id))))))
 

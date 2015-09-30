@@ -86,7 +86,7 @@
                                                               :updated_at (:updated-at model)}}))]
     (println "RESULT: " result)
     (is (result/succeeded? result))
-    (is (= model-id (:id result)))
+    (is (= model-id (:_id result)))
     (is (= email (:email result)))
     (is (= (:name model) (:name result)))
     (is (= (:updated-at model) (:updated-at result)))
@@ -94,7 +94,7 @@
     (testing "get-model"
       (let [result (<!! (core/get-model model-id {:table table}))]
         (is (result/succeeded? result))
-        (is (= (:id result) (:id model)))
+        (is (= (:_id result) (:_id model)))
         (is (= (:name result) (:name model)))
         (is (= (:email result) (:email model)))))))
 
