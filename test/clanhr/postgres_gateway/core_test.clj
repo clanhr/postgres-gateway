@@ -74,6 +74,29 @@
         (is (= (:name data-model) (:name model)))
         (is (= (:email data-model) (:email model)))))))
 
+(deftest insert-with-id
+  (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
+        model-id (str (java.util.UUID/randomUUID))
+        model {:_id id
+               :name "Bruce"
+               :email email
+               :updated-at (t/now)}
+        result (<!! (core/save-model-with-id! model {:table table
+                                                     :fields {:email email
+                                                              :updated_at (:updated-at model)}}))]
+    (is (result/succeeded? result))
+    (is (= model-id (:id result)))
+    (is (= email (:email result)))
+    (is (= (:name model) (:name result)))
+    (is (= (:updated-at model) (:updated-at result)))
+
+    (testing "get-model"
+      (let [result (<!! (core/get-model model-id {:table table}))]
+        (is (result/succeeded? result))
+        (is (= (:id result) (:id model)))
+        (is (= (:name result) (:name model)))
+        (is (= (:email result) (:email model)))))))
+
 (deftest bulk-inserting
   (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
         model1 {:name "Bruce" :email email}

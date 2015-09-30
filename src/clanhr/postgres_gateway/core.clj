@@ -83,6 +83,17 @@
               (build-result config sql response  model-with-id))
             (result/failure (str "Model " table-name " with id '" (:_id model) "' not updated (maybe not found?)"))))))))
 
+(defn save-model-with-id!
+  "Saves a model with id to the datastore"
+  [model config]
+  (let [table-name (:table config)
+        sql (str "upsert " table-name)]
+    (async-go config sql
+      (let [model-with-id (idify model)
+            response (async/<! (upsert! true model-with-id config))]
+        (when (or (instance? Throwable response) (= 1 (:updated response)))
+          (build-result config sql response model-with-id))))))
+
 (defn- prepare-fields-fn
   "If a fields-fn function is provided, it will be called per field
   to resolve the fields for the model"
