@@ -84,7 +84,6 @@
         result (<!! (core/save-model-with-id! model {:table table
                                                      :fields {:email email
                                                               :updated_at (:updated-at model)}}))]
-    (println "RESULT: " result)
     (is (result/succeeded? result))
     (is (= model-id (:_id result)))
     (is (= email (:email result)))
