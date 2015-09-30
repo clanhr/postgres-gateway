@@ -77,7 +77,7 @@
 (deftest insert-with-id
   (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
         model-id (str (java.util.UUID/randomUUID))
-        model {:_id id
+        model {:_id model-id
                :name "Bruce"
                :email email
                :updated-at (t/now)}
