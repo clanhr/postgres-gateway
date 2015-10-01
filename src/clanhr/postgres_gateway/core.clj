@@ -86,13 +86,7 @@
 (defn save-model-with-id!
   "Saves a model with id to the datastore"
   [model config]
-  (let [table-name (:table config)
-        sql (str "upsert " table-name)]
-    (async-go config sql
-      (let [model-with-id (idify model)
-            response (async/<! (upsert! false model-with-id config))]
-        (when (or (instance? Throwable response) (= 1 (:updated response)))
-          (build-result config sql response model-with-id))))))
+  (save-model! model (assoc config :save-options :insert-if-not-found)))
 
 (defn- prepare-fields-fn
   "If a fields-fn function is provided, it will be called per field
