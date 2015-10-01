@@ -86,7 +86,7 @@
 (defn save-model-with-id!
   "Saves a model with id to the datastore"
   [model config]
-  (save-model! model (assoc config :save-options :insert-if-not-found)))
+  (save-model! model (assoc config :save-options {:insert-if-not-found true})))
 
 (defn- prepare-fields-fn
   "If a fields-fn function is provided, it will be called per field
