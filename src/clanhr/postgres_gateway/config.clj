@@ -2,10 +2,11 @@
   "Config settings to connect to PG"
   (require [postgres.async :refer :all]
            [cheshire.core :as json]
+           [clanhr.postgres-gateway.connection-provider :as connection-provider]
            [environ.core :refer [env]]
            [result.core :as result]))
 
-(def ^:private db-pool (atom nil))
+(def db-pool (atom nil))
 
 (defn- split-query-params
   "Splits somethig like a=1 in {:a 1}"
@@ -45,13 +46,20 @@
   ([config]
    (open-db (resolve-db-config config))))
 
+(defn close-connection!
+  "Closes the given connection"
+  [conn]
+  (close-db! conn))
+
 (defn get-connection
   ([] (get-connection nil))
   ([config]
-   (swap! db-pool (fn [pool]
-                    (if pool
-                       pool
-                       (create-connection config))))))
+   (if (connection-provider/valid? config)
+     (connection-provider/get-connection config)
+     (swap! db-pool (fn [pool]
+                      (if pool
+                         pool
+                         (create-connection config)))))))
 
 (defn begin
   [config]
