@@ -54,12 +54,16 @@
 (defn get-connection
   ([] (get-connection nil))
   ([config]
-   (if (connection-provider/valid? config)
-     (connection-provider/get-connection config)
-     (swap! db-pool (fn [pool]
-                      (if pool
-                         pool
-                         (create-connection config)))))))
+   (cond
+     (connection-provider/valid? config)
+       (connection-provider/get-connection config)
+     (connection-provider/valid? (:pg-conn config))
+       (connection-provider/get-connection (:pg-conn config))
+     :else
+       (swap! db-pool (fn [pool]
+                        (if pool
+                           pool
+                           (create-connection config)))))))
 
 (defn begin
   [config]
