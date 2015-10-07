@@ -11,13 +11,11 @@
     (if conn
       this
       (do
-        (println "** Starting PostgresGatewayComponent")
         (assoc this :conn (config/create-connection config)))))
 
   (stop [this]
     (if conn
       (do
-        (println "** Stopping PostgresGatewayComponent")
         (config/close-connection! conn)
         (dissoc this :conn))
       this))
@@ -32,5 +30,5 @@
   ([]
    (create nil))
   ([config]
-   (map->PostgresGatewayComponent {:config config})))
+   (map->PostgresGatewayComponent {:config {:db-config config}})))
 
