@@ -57,8 +57,8 @@
    (cond
      (connection-provider/valid? config)
        (connection-provider/get-connection config)
-     (connection-provider/valid? (:pg-conn config)
-       (connection-provider/get-connection (pg-conn config))
+     (connection-provider/valid? (:pg-conn config))
+       (connection-provider/get-connection (:pg-conn config))
      :else
        (swap! db-pool (fn [pool]
                         (if pool

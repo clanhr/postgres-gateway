@@ -32,7 +32,7 @@
   If it's ok, runs the given forms"
   [config query response & body]
   `(if (instance? Throwable ~response)
-    (errors/exception ~response {:config ~config :query ~query})
+    (errors/exception ~response {:query ~query})
     (result/success (do ~@body))))
 
 (defn- track
@@ -54,7 +54,7 @@
          (track ~config ~query elapsed#)
          value#)
        (catch Throwable e#
-         (errors/exception e# {:query ~query :config ~config})))))
+         (errors/exception e# {:query ~query})))))
 
 (defn- upsert!
   "Updates or inserts a model"
