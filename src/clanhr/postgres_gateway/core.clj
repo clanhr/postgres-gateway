@@ -80,13 +80,34 @@
           (build-result config sql response model-with-id)
           (if (get-in config [:save-options :insert-if-not-found])
             (let [response (async/<! (upsert! false model-with-id config))]
-              (build-result config sql response  model-with-id))
+              (build-result config sql response model-with-id))
             (result/failure (str "Model " table-name " with id '" (:_id model) "' not updated (maybe not found?)"))))))))
 
 (defn save-model-with-id!
   "Saves a model with id to the datastore"
   [model config]
   (save-model! model (assoc config :save-options {:insert-if-not-found true})))
+
+(defn- upsert-data!
+  "Updates or inserts data"
+  [update? fields config]
+  (let [db (config/get-connection config)
+        sql-spec {:table (:table config) :returning "id"}]
+    (if update?
+      (update! db (assoc sql-spec :where ["id = $1" (:id fields)]) fields)
+      (insert! db sql-spec fields))))
+
+(defn save-data!
+  "Saves arbitrary data"
+  [data config]
+  (let [table-name (:table config)
+        sql (str "upsert " table-name)]
+    (async-go config sql
+      (let [response (async/<! (upsert-data! true data config))]
+        (if (or (instance? Throwable response) (= 1 (:updated response)))
+          (build-result config sql response data)
+          (let [response (async/<! (upsert-data! false data config))]
+            (build-result config sql response data)))))))
 
 (defn- prepare-fields-fn
   "If a fields-fn function is provided, it will be called per field
@@ -125,6 +146,15 @@
       (let [db (config/get-connection config)
             response (async/<! (query! db raw-query))]
         (build-result config raw-query response (map #(:model %) response))))))
+
+(defn query-data
+  "Runs a query on the database and returns raw data"
+  [raw-query config]
+  (let [raw-query (build-query raw-query config)]
+    (async-go config (first raw-query)
+      (let [db (config/get-connection config)
+            response (async/<! (query! db raw-query))]
+        (build-result config raw-query response response)))))
 
 (defn count-models
   "Utility around count"
