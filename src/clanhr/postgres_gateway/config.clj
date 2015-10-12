@@ -2,6 +2,8 @@
   "Config settings to connect to PG"
   (require [postgres.async :refer :all]
            [cheshire.core :as json]
+           [clojure.core.async :refer [go <!]]
+           [clanhr.analytics.errors :as errors]
            [clanhr.postgres-gateway.connection-provider :as connection-provider]
            [environ.core :refer [env]]
            [result.core :as result]))
@@ -79,3 +81,41 @@
   [config]
   (let [conn (get-connection config)]
     (rollback! conn)))
+
+(defn with-transaction!
+  "Returns a context in a transaction"
+  [context]
+  (go
+    (let [conn (-> context :pg-conn)
+          transaction-conn (<! (begin conn))]
+      (assoc context :pg-conn (reify
+                                connection-provider/ConnectionProvider
+                                (get-connection [this]
+                                  transaction-conn))))))
+
+(defn commit-transaction!
+  "Commits the transaction on the context"
+  [context]
+  (commit (:pg-conn context)))
+
+(defn rollback-transaction!
+  "Rolls back the transaction on the context"
+  [context]
+  (rollback (:pg-conn context)))
+
+(defn transaction-run!
+  "Runs the given fn in a transaction. Expects f to return a channel
+  with a result"
+  [context f]
+  (go
+    (let [context (<! (with-transaction! context))]
+      (try
+        (let [result (<! (f context))]
+          (if (result/succeeded? result)
+            (do (<! (commit-transaction! context))
+                result)
+            (do (<! (rollback-transaction! context))
+                result)))
+        (catch Exception e
+          (<! (rollback-transaction! context))
+          (errors/exception e))))))
