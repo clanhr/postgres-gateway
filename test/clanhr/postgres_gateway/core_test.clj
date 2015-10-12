@@ -4,9 +4,11 @@
             [clanhr.postgres-gateway.core :as core]
             [clj-time.core :as t]
             [clanhr.postgres-gateway.config :as config]
+            [clanhr.postgres-gateway.component :as pg-component]
             [postgres.async :refer :all]
             [environ.core :refer [env]]
-            [result.core :as result]))
+            [result.core :as result]
+            [com.stuartsierra.component :as component]))
 
 (def ^:private ^:dynamic *db*)
 (def table "postgres_gateway_tests")
@@ -249,5 +251,25 @@
                                              :insert true
                                              :fields {:email email}}))]
     (result/succeeded? result)))
+
+(deftest use-transaction-context
+  (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
+        model-id (str (java.util.UUID/randomUUID))
+        model {:_id model-id
+               :name "Bruce"
+               :email email
+               :updated-at (t/now)}
+        pg-conn (-> (pg-component/create) (component/start))
+        context {:pg-conn pg-conn}
+        result (<!! (config/transaction-run! context
+                  (fn [context]
+                    (core/save-model-with-id! model
+                      (merge context
+                             {:table table
+                              :fields {:email email
+                              :updated_at (:updated-at model)}})))))]
+
+    (is (result/succeeded? result))
+    (is (= model-id (:_id result)))))
 
 #_(run-tests)
