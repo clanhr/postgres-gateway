@@ -92,9 +92,10 @@
   "Updates or inserts data"
   [update? fields config]
   (let [db (config/get-connection config)
-        sql-spec {:table (:table config) :returning "id"}]
+        sql-spec {:table (:table config) :returning "id"}
+        pk-query (or (:pk-query config) ["id = $1" (:id fields)])]
     (if update?
-      (update! db (assoc sql-spec :where ["id = $1" (:id fields)]) fields)
+      (update! db (assoc sql-spec :where pk-query) fields)
       (insert! db sql-spec fields))))
 
 (defn save-data!
