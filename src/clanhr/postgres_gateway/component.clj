@@ -4,7 +4,7 @@
            [clanhr.postgres-gateway.connection-provider :as connection-provider]
            [com.stuartsierra.component :as component]))
 
-(defrecord PostgresGatewayComponent [config conn]
+(defrecord PostgresGatewayComponent [config conn async-close?]
   component/Lifecycle
 
   (start [this]
@@ -16,7 +16,9 @@
   (stop [this]
     (if conn
       (do
-        (config/close-connection! conn)
+        (if async-close?
+          (future (config/close-connection! conn))
+          (config/close-connection! conn))
         (dissoc this :conn))
       this))
 
@@ -30,5 +32,8 @@
   ([]
    (create nil))
   ([config]
-   (map->PostgresGatewayComponent {:config {:db-config config}})))
+   (create config false))
+  ([config async-close?]
+   (map->PostgresGatewayComponent {:async-close? async-close?
+                                   :config {:db-config config}})))
 
