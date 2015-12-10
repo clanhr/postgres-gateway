@@ -53,6 +53,13 @@
   [conn]
   (close-db! conn))
 
+(defn on-shutdown
+  "Shuts down the global connection"
+  []
+  (println "Shutdown postgres-gateway...")
+  (when-let [conn @db-pool]
+    (close-connection! conn)))
+
 (defn get-connection
   ([] (get-connection nil))
   ([config]
@@ -65,7 +72,9 @@
        (swap! db-pool (fn [pool]
                         (if pool
                            pool
-                           (create-connection config)))))))
+                           (do
+                             (create-connection config)
+                             (.addShutdownHook (Runtime/getRuntime) (Thread. on-shutdown)))))))))
 
 (defn begin
   [config]
@@ -119,3 +128,4 @@
         (catch Exception e
           (<! (rollback-transaction! context))
           (errors/exception e))))))
+
