@@ -73,8 +73,8 @@
                         (if pool
                            pool
                            (do
-                             (create-connection config)
-                             (.addShutdownHook (Runtime/getRuntime) (Thread. on-shutdown)))))))))
+                             (.addShutdownHook (Runtime/getRuntime) (Thread. on-shutdown))
+                             (create-connection config))))))))
 
 (defn begin
   [config]
