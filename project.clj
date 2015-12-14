@@ -13,6 +13,7 @@
                  [org.clojure/clojure "1.7.0-RC1"]
                  [org.clojure/java.jdbc "0.4.2"]
                  [alaisi/postgres.async "0.6.0"]
+                 [postgresql "9.3-1102.jdbc41"]
                  [cheshire "5.5.0"]
                  [com.stuartsierra/component "0.3.1"]
                  [clanhr/result "0.10.3"]
