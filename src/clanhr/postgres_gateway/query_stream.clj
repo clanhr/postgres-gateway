@@ -23,7 +23,6 @@
     (future
       (j/query db-connection
                [statement]
-               :row-fn (fn [row]
-                         (>!! ch row)))
+               :row-fn (fn [row] (>!! ch row)))
       (close! ch))
     ch))

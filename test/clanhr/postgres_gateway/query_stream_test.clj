@@ -1,6 +1,6 @@
 (ns clanhr.postgres-gateway.query-stream-test
   (:require [clojure.test :refer :all]
-            [clojure.core.async :refer [<!! go]]
+            [clojure.core.async :as async :refer [<!! go]]
             [clanhr.postgres-gateway.core :as core]
             [clj-time.core :as t]
             [clanhr.postgres-gateway.config :as config]
@@ -46,3 +46,21 @@
   (let [ch (query-stream/run (str "select * from " table))
         batch (wait ch)]
     (is (not (nil? batch)))))
+
+(defn- take-all
+  "Gets all items from a channel"
+  ([ch]
+   (take-all ch []))
+  ([ch coll]
+   (if-let [v (<!! ch)]
+     (take-all ch (conj coll v))
+     coll)))
+
+(deftest get-N-result-stream
+  (testing "create a lot"
+    (dotimes [n 100]
+      (<!! (core/save-data! {:email (str "suricata" n "@clanhr.com")} {:table table})))
+    (let [ch (query-stream/run (str "select * from " table))
+          batch (take-all ch)]
+      (is (not (nil? batch)))
+      (is (= 100 (count batch))))))
