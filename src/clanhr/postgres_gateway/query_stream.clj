@@ -11,7 +11,7 @@
 
 (defn run
   "Opens a stream to a db query and returns a channel that will receive
-  batches of roes"
+  all the rows, one by one"
   ([sql]
    (run sql nil))
   ([sql config]
