@@ -42,6 +42,17 @@
            :password (env :pg-password "")
            :pool-size 1}))
 
+(defn db-config-map
+  "Gets the current used db config map"
+  ([]
+   (db-config-map nil))
+  ([config]
+   (let [base (resolve-db-config config)]
+     (assoc base :host (:hostname base)
+                 :dbname (:database base)
+                 :user (:username base)
+                 :dbtype "postgresql"))))
+
 (defn create-connection
   "Creates a new connection pool"
   ([] (create-connection nil))

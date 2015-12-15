@@ -3,6 +3,7 @@
   (require [postgres.async :refer :all]
            [cheshire.core :as json]
            [clojure.core.async :refer [go <!! >!! chan close!]]
+           [clanhr.postgres-gateway.config :as config]
            [clanhr.analytics.errors :as errors]
            [clojure.java.jdbc :as j]
            [environ.core :refer [env]]
@@ -12,7 +13,7 @@
   "Opens a stream to a db query and returns a channel that will receive
   batches of roes"
   [sql]
-  (let [db-spec "postgresql://192.168.59.103:5432/postgres?user=postgres&password=wasabi"
+  (let [db-spec (config/db-config-map)
         ch (chan 10)
         fetch-size 1000
         db-connection (doto ( j/get-connection db-spec) (.setAutoCommit true))
