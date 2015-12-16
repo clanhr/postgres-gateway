@@ -9,6 +9,23 @@
            [environ.core :refer [env]]
            [result.core :as result]))
 
+(defn- raw-statement
+  "Creates a raw prepared statement"
+  [db-connection sql fetch-size]
+  (j/prepare-statement db-connection
+                       sql
+                       :fetch-size fetch-size
+                       :concurrency :read-only))
+
+(defn- create-statement
+  "Creates a preared statement"
+  [db-connection sql fetch-size]
+  (if (string? sql)
+    [(raw-statement db-connection sql fetch-size)]
+    (let [[sql & params] sql]
+      (into [] (concat [(raw-statement db-connection sql fetch-size)]
+              params)))))
+
 (defn run
   "Opens a stream to a db query and returns a channel that will receive
   all the rows, one by one"
@@ -19,13 +36,15 @@
          ch (chan 10)
          fetch-size 1000
          db-connection (doto ( j/get-connection db-spec) (.setAutoCommit true))
-         statement (j/prepare-statement db-connection
-                                        sql
-                                        :fetch-size fetch-size
-                                        :concurrency :read-only)]
+         statement (create-statement db-connection sql fetch-size)]
+     (println (count statement) statement)
      (future
-       (j/query db-connection
-                [statement]
-                :row-fn (fn [row] (>!! ch row)))
-       (close! ch))
+       (try
+         (j/query db-connection
+                  statement
+                  :row-fn (fn [row] (>!! ch row)))
+         (close! ch)
+         (catch Exception e
+           (>!! ch e)
+           (close! ch))))
      ch)))

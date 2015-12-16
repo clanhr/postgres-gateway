@@ -37,7 +37,7 @@
 (use-fixtures :each db-fixture)
 
 (deftest empty-stream
-  (let [ch (query-stream/run (str "select * from " table " where email = 'waza'"))
+  (let [ch (query-stream/run (str "select * from " table " where email = 'invalid@gmail.com'"))
         data (wait ch)]
     (is (nil? data))))
 
@@ -45,6 +45,13 @@
   (core/save-data! {:email "suricata@clanhr.com"} {:table table})
   (let [ch (query-stream/run (str "select * from " table))
         batch (wait ch)]
+    (is (not (nil? batch)))))
+
+(deftest get-1-result-stream-with-params
+  (core/save-data! {:email "suricata@clanhr.com"} {:table table})
+  (let [ch (query-stream/run [(str "select * from " table " where email=?") "suricata@clanhr.com"])
+        batch (wait ch)]
+    (println batch)
     (is (not (nil? batch)))))
 
 (defn- take-all
