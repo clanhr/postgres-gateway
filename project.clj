@@ -14,7 +14,7 @@
   :dependency-sets [:clojure :common :clanhr]
 
   :dependencies [[org.clojure/java.jdbc "0.5.8"]
-                 [alaisi/postgres.async "0.6.0"]
+                 [alaisi/postgres.async "0.6.0" :exclusions [[io.netty/netty-handler]]]
                  [postgresql "9.3-1102.jdbc41"]]
 
   :plugins [[clanhr/shared-deps "0.2.6"]
