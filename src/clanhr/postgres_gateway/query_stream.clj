@@ -14,8 +14,8 @@
   [db-connection sql fetch-size]
   (j/prepare-statement db-connection
                        sql
-                       :fetch-size fetch-size
-                       :concurrency :read-only))
+                       {:fetch-size fetch-size
+                        :concurrency :read-only}))
 
 (defn- create-statement
   "Creates a preared statement"
