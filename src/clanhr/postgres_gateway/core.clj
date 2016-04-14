@@ -27,13 +27,25 @@
         (assoc :id (:_id model))
         (assoc :model model))))
 
+(defn- get-exception-result
+  "Gets an exception to wrap the given sql exception"
+  [config ex query]
+  (try
+    (throw (Exception. "SQL ERROR" ex))
+    (catch Exception e
+      (errors/exception (ex-info "Error in sql"
+                                {:query query
+                                 :exception (.getMessage ex)
+                                 :fields (:fields config)}
+                                e)))))
+
 (defmacro build-result
   "Verifies the response and short-circuit's it if it's an error/exception.
   If it's ok, runs the given forms"
   [config query response & body]
   `(if (instance? Throwable ~response)
-    (errors/exception ~response {:query ~query})
-    (result/success (do ~@body))))
+     (get-exception-result ~config ~response ~query)
+     (result/success (do ~@body))))
 
 (defn- track
   "Tracks a query"
