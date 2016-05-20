@@ -100,7 +100,10 @@
 (defn rollback
   [config]
   (let [conn (get-connection config)]
-    (rollback! conn)))
+    (try
+      (rollback! conn)
+      (catch Exception e
+        (go (errors/exception e))))))
 
 (defn with-transaction!
   "Returns a context in a transaction"
@@ -139,4 +142,3 @@
         (catch Exception e
           (<! (rollback-transaction! context))
           (errors/exception e))))))
-
