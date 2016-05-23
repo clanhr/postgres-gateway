@@ -3,6 +3,8 @@
             [clojure.core.async :refer [<!! go]]
             [clanhr.postgres-gateway.core :as core]
             [clanhr.postgres-gateway.config :as config]
+            [com.stuartsierra.component :as component]
+            [clanhr.postgres-gateway.component :as pg-component]
             [postgres.async :refer :all]
             [environ.core :refer [env]]
             [result.core :as result]))
@@ -36,5 +38,23 @@
   (let [conn-str "jdbc:postgresql://192.168.59.103:5432/postgres?user=postgres&password=wasabi&sslmode=require"
         data (config/jdbc-str-to-map conn-str)]
     (is (= true (:ssl data)))))
+
+(deftest transaction-result-failed-test
+  (let [pg-conn (component/start (pg-component/create))
+        context {:pg-conn pg-conn}]
+
+    (testing "forcing a rollback"
+      (is (result/failed?
+            (<!! (config/transaction-run! context
+                                          (fn [context]
+                                            (go (result/failure))))))))
+
+    (testing "check if the connection is still ok"
+      (is (result/succeeded?
+            (<!! (config/transaction-run! context
+                                          (fn [context]
+                                            (core/query-data ["select 1;"] context)))))))
+
+    (component/stop pg-conn)))
 
 #_(run-tests)
