@@ -37,12 +37,11 @@
          fetch-size 1000
          db-connection (doto ( j/get-connection db-spec) (.setAutoCommit true))
          statement (create-statement db-connection sql fetch-size)]
-     (println (count statement) statement)
      (future
        (try
          (j/query db-connection
                   statement
-                  :row-fn (fn [row] (>!! ch row)))
+                  {:row-fn (fn [row] (>!! ch row))})
          (close! ch)
          (catch Exception e
            (>!! ch e)

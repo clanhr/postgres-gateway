@@ -17,6 +17,7 @@
                  [postgresql "9.3-1102.jdbc41"]
                  [cheshire "5.6.1"]
                  [com.stuartsierra/component "0.3.1"]
+                 [org.slf4j/slf4j-nop "1.7.12"]
                  [clanhr/result "0.11.0"]
                  [clanhr/analytics "1.9.0"]
                  [postgresql "9.3-1102.jdbc41"]]

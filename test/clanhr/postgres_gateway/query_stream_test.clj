@@ -51,7 +51,6 @@
   (core/save-data! {:email "suricata@clanhr.com"} {:table table})
   (let [ch (query-stream/run [(str "select * from " table " where email=?") "suricata@clanhr.com"])
         batch (wait ch)]
-    (println batch)
     (is (not (nil? batch)))))
 
 (defn- take-all
