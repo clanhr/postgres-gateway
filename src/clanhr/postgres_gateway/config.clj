@@ -67,7 +67,7 @@
 (defn on-shutdown
   "Shuts down the global connection"
   []
-  (println "Shutdown postgres-gateway...")
+  (println "Shutdown global postgres-gateway...")
   (when-let [conn @db-pool]
     (close-connection! conn)))
 
@@ -84,6 +84,7 @@
                         (if pool
                            pool
                            (do
+                             (println "Starting global postgres-gateway...")
                              (.addShutdownHook (Runtime/getRuntime) (Thread. on-shutdown))
                              (create-connection config))))))))
 
@@ -100,18 +101,27 @@
 (defn rollback
   [config]
   (let [conn (get-connection config)]
-    (rollback! conn)))
+    (try
+      (rollback! conn)
+      (catch Exception e
+        (go (errors/exception e))))))
 
 (defn with-transaction!
   "Returns a context in a transaction"
   [context]
   (go
-    (let [conn (-> context :pg-conn)
-          transaction-conn (<! (begin conn))]
-      (assoc context :pg-conn (reify
-                                connection-provider/ConnectionProvider
-                                (get-connection [this]
-                                  transaction-conn))))))
+    (let [conn (-> context :pg-conn)]
+      (if (nil? conn)
+        (errors/exception (ex-info "Missing :pg-conn at the system/context" {:success false}))
+        (let [transaction-conn (<! (begin conn))]
+          (if (instance? Throwable transaction-conn)
+            (errors/exception transaction-conn)
+            (-> context
+                (assoc :pg-conn (reify
+                                  connection-provider/ConnectionProvider
+                                  (get-connection [this]
+                                    transaction-conn)))
+                result/success)))))))
 
 (defn commit-transaction!
   "Commits the transaction on the context"
@@ -129,14 +139,15 @@
   [context f]
   (go
     (let [context (<! (with-transaction! context))]
-      (try
-        (let [result (<! (f context))]
-          (if (result/succeeded? result)
-            (do (<! (commit-transaction! context))
-                result)
-            (do (<! (rollback-transaction! context))
-                result)))
-        (catch Exception e
-          (<! (rollback-transaction! context))
-          (errors/exception e))))))
-
+      (if (result/failed? context)
+        context
+        (try
+          (let [result (<! (f context))]
+            (if (result/succeeded? result)
+              (do (<! (commit-transaction! context))
+                  result)
+              (do (<! (rollback-transaction! context))
+                  result)))
+          (catch Exception e
+            (<! (rollback-transaction! context))
+            (errors/exception e)))))))
