@@ -136,8 +136,8 @@
         (is (result/succeeded? result))
         (is (= 2 (count data)))))))
 
-#_(deftest inserting-with-exception
-  (let [result (<!! (core/save-model! {} {:table "does-not-exist"}))]
+(deftest inserting-with-exception
+  (let [result (<!! (core/save-model! {} {:table "does_not_exist"}))]
     (is (result/failed? result))))
 
 (deftest updating-non-existent
