@@ -29,3 +29,6 @@
 
 (defmethod from-pg-value com.github.pgasync.impl.Oid/DATE [oid value]
   (coerce/from-string (String. value)))
+
+(defmethod from-pg-value com.github.pgasync.impl.Oid/NUMERIC [oid value]
+  (Double/parseDouble (String. value)))

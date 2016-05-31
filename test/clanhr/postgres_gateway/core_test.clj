@@ -26,6 +26,7 @@
                            id uuid primary key default uuid_generate_v4(),
                            model jsonb,
                            email varchar(200),
+                           num decimal,
                            updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP)")])))
 
 (defn- db-fixture [f]
@@ -135,8 +136,8 @@
         (is (result/succeeded? result))
         (is (= 2 (count data)))))))
 
-#_(deftest inserting-with-exception
-  (let [result (<!! (core/save-model! {} {:table "does-not-exist"}))]
+(deftest inserting-with-exception
+  (let [result (<!! (core/save-model! {} {:table "does_not_exist"}))]
     (is (result/failed? result))))
 
 (deftest updating-non-existent
@@ -271,5 +272,22 @@
 
     (is (result/succeeded? result))
     (is (= model-id (:_id result)))))
+
+(deftest query-decimals
+  (testing "saving data"
+    (let [email (str (str (java.util.UUID/randomUUID)) "@rupeal.com")
+        model-id (java.util.UUID/randomUUID)
+        model {:id model-id
+               :email email
+               :num 1.5
+               :updated_at (t/now)}
+        result (<!! (core/save-data! model {:table table}))]
+    (is (result/succeeded? result))
+    (testing "get-model"
+      (let [result (<!! (core/query-data [(str "select num from " table" where id = $1") model-id]
+                                         {:table table}))
+            data (first (:data result))]
+        (is (result/succeeded? result))
+        (is (= 1.5 (:num data))))))))
 
 #_(run-tests)
