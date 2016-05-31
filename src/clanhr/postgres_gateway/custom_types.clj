@@ -26,3 +26,6 @@
 
 (defmethod from-pg-value com.github.pgasync.impl.Oid/JSONB [oid value]
   (json/parse-string (String. value) true))
+
+(defmethod from-pg-value com.github.pgasync.impl.Oid/DATE [oid value]
+  (coerce/from-string (String. value)))
