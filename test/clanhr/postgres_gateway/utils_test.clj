@@ -25,3 +25,9 @@
 (deftest add-in-logic
   (is (= (utils/add-in-logic ["name in ($1)" ["a" "b"]] {:in-param 1})
          ["name in ($1,$2)" "a" "b"])))
+
+(deftest snake-case-keys
+  (is (= {:some_key 1} (utils/->snake-case-keys {:some-key 1}))))
+
+(deftest lisp-case-keys
+  (is (= {:some-key 1} (utils/->lisp-case-keys {:some_key 1}))))
