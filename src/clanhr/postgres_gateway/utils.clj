@@ -63,3 +63,21 @@
       (into [] (flatten query-with-sql)))
     query))
 
+(defn- change-keys-case
+  "Change the case of the keys"
+  [model from-char to-char]
+  (when model
+    (reduce-kv (fn [m k v]
+                (assoc m (keyword (clojure.string/replace (name k) from-char to-char)) v))
+      {}
+      model)))
+
+(defn ->snake-case-keys
+  "Transforms lisp case keys with - in database keys with _"
+  [model]
+  (change-keys-case model "-" "_"))
+
+(defn ->lisp-case-keys
+  "Transforms database keys with _ in clojure keys with -"
+  [model]
+  (change-keys-case model "_" "-"))
