@@ -16,18 +16,44 @@
   (let [parts (clojure.string/split raw #"=")]
     (assoc container (keyword (first parts)) (last parts))))
 
-(defn jdbc-str-to-map
-  "Converts a jdbc string to a map"
+(defn complete-format?
+  [conn-str]
+  (re-matches #"^jdbc:postgresql://(.+):(\d+)/(.*)\?(.*)" conn-str))
+
+(defn to-map
+  ([parts]
+   (to-map parts {}))
+  ([parts query-parts]
+   (merge query-parts {:hostname (nth parts 1)
+                       :ssl (= "require" (:sslmode query-parts))
+                       :username (or (:user query-parts) "postgres")
+                       :port (or (Integer/parseInt (nth parts 2)) 5432)
+                       :database (or (nth parts 3) "postgres")})))
+
+(defn complete-format-to-map
   [conn-str]
   (let [parts (re-find #"^jdbc:postgresql://(.+):(\d+)/(.*)\?(.*)" conn-str)
         query-str (nth parts 4)
         raw-query (clojure.string/split query-str #"&")
         query-parts (reduce split-query-params {} raw-query)]
-    (merge query-parts {:hostname (nth parts 1)
-                        :ssl (= "require" (:sslmode query-parts))
-                        :username (:user query-parts)
-                        :port (Integer/parseInt (nth parts 2))
-                        :database (nth parts 3)})))
+    (to-map parts query-parts)))
+
+(defn ephemeralpg-format?
+  [conn-str]
+  (re-matches #"^postgresql://(.+):(\d+)/(.*)" conn-str))
+
+(defn ephemeralpg-format-to-map
+  [conn-str]
+  (let [parts (re-find #"^postgresql://(.+):(\d+)/(.*)" conn-str)
+        query-str (nth parts 3)]
+    (to-map parts)))
+
+(defn jdbc-str-to-map
+  "Converts a jdbc string to a map"
+  [conn-str]
+  (cond
+    (complete-format? conn-str) (complete-format-to-map conn-str)
+    (ephemeralpg-format? conn-str) (ephemeralpg-format-to-map conn-str)))
 
 (defn- resolve-db-config
   "Gets the database configuration to use"
