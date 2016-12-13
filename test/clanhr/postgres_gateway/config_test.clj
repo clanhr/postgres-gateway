@@ -40,7 +40,7 @@
 
 (deftest ephemeralpg-format?-test
   (testing "should be ephemeralpg format"
-    (-> (str "postgresql://127.0.0.1:63939/test")
+    (-> (str "postgresql://bubu@127.0.0.1:63939/test")
         config/ephemeralpg-format?
         is)
     )
@@ -55,14 +55,15 @@
 (deftest ephemeralpg-format-to-map-test
   (let [hostname "127.0.0.1"
         port 5432
+        user "boss"
         database "database"
-        conn-str (str "postgresql://"hostname":"port"/"database)
+        conn-str (str "postgresql://"user"@"hostname":"port"/"database)
         data (config/ephemeralpg-format-to-map conn-str)]
     (is data)
     (is (= hostname (:hostname data)))
     (is (= port (:port data)))
     (is (= database (:database data)))
-    (is (= "postgres" (:username data)))))
+    (is (= "boss" (:username data)))))
 
 (deftest jdbc-string-to-map
   (let [hostname "localhost"
