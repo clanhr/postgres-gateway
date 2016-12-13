@@ -22,11 +22,11 @@
 
 (defn to-map
   ([parts]
-   (to-map parts {}))
+   (to-map parts {:password ""}))
   ([parts query-parts]
    (merge query-parts {:hostname (nth parts 1)
                        :ssl (= "require" (:sslmode query-parts))
-                       :username (or (:user query-parts) "postgres")
+                       :username (or (:user query-parts) "")
                        :port (or (Integer/parseInt (nth parts 2)) 5432)
                        :database (or (nth parts 3) "postgres")})))
 
@@ -40,13 +40,14 @@
 
 (defn ephemeralpg-format?
   [conn-str]
-  (re-matches #"^postgresql://(.+):(\d+)/(.*)" conn-str))
+  (re-matches #"^postgresql://(.+)@(.+):(\d+)/(.*)" conn-str))
 
 (defn ephemeralpg-format-to-map
   [conn-str]
-  (let [parts (re-find #"^postgresql://(.+):(\d+)/(.*)" conn-str)
+  (let [parts (re-find #"^postgresql://(.+)@(.+):(\d+)/(.*)" conn-str)
         query-str (nth parts 3)]
-    (to-map parts)))
+    (println (rest parts))
+    (to-map (rest parts) {:user (nth parts 1) :password ""})))
 
 (defn jdbc-str-to-map
   "Converts a jdbc string to a map"
