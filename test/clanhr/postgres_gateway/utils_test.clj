@@ -10,8 +10,12 @@
 
 (deftest array-column-types
   (is (nil? (utils/array-column-value nil)))
-  (is (= "{waza}" (utils/array-column-value "waza")))
-  (is (= "{waza,bi}" (utils/array-column-value ["waza" "bi"]))))
+  (is (= "{\"waza\"}" (utils/array-column-value "waza")))
+  (is (= "{\"waza\",\"bi\"}" (utils/array-column-value ["waza" "bi"])))
+  (is (= "{\"Kw, Lda.\",\"bi\"}" (utils/array-column-value ["Kw, Lda." "bi"])))
+  (is (= "{\"wa,za\",\"wa,bi\"}" (utils/array-column-value ["wa,za" "wa,bi"])))
+  (is (= "{\"wa, lda\",\"we,inc\",\"bi\"}" (utils/array-column-value "wa, lda§we,inc§bi")))
+  (is (= "{\"wa, lda\",\"bi\",\"wa,inc\"}" (utils/array-column-value "wa, lda§bi§wa,inc"))))
 
 (deftest like-value
   (is (= "" (utils/like-value nil)))
@@ -31,3 +35,12 @@
 
 (deftest lisp-case-keys
   (is (= {:some-key 1} (utils/->lisp-case-keys {:some_key 1}))))
+
+(deftest split-string
+  (is (= ["tag1", "tag2"] (#'utils/split-string "tag1,tag2")))
+  (is (= ["tag1", "tag2"] (#'utils/split-string "tag1§tag2")))
+  (is (= ["tag1, Lda.", "tag2"] (#'utils/split-string "tag1, Lda.§tag2"))))
+
+(deftest quote-string
+  (is (= "\"tag1\"" (#'utils/quote-string "tag1")))
+  (is (= "\"tag1\"" (#'utils/quote-string "\"tag1\""))))
