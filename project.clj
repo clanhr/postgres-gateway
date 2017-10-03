@@ -1,4 +1,4 @@
-(defproject clanhr/postgres-gateway "1.12.0"
+(defproject clanhr/postgres-gateway "1.12.1"
   :description "ClanHR postgres-gateway"
   :url "https://github.com/clanhr/postgres-gateway"
 
@@ -26,4 +26,3 @@
 
   :source-paths ["src"]
   :test-paths ["test"])
-

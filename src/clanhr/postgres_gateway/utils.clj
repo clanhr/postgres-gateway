@@ -6,14 +6,6 @@
            [result.core :as result]
            [result.core :as result]))
 
-(defn array-column-value
-  "Transforms into postgres array column format a sequence of values"
-  [coll]
-  (cond
-    (nil? coll) nil
-    (coll? coll) (str "{" (clojure.string/join "," coll)  "}")
-    :else (str "{" coll "}")))
-
 (defn like-value
   "Transforms into a postgres like value"
   [raw]
@@ -81,3 +73,40 @@
   "Transforms database keys with _ in clojure keys with -"
   [model]
   (change-keys-case model "_" "-"))
+
+(defn- quote-string
+  "Encase a string in quotes, if not already"
+  [string]
+  (if (clojure.string/starts-with? string "\"")
+    string
+    (str "\"" string "\"")))
+
+(defn- split-string
+  "Splits a string either by section sign (§) or comma (,)"
+  [string]
+  (if (.contains string "§")
+    (clojure.string/split string #"§")
+    (clojure.string/split string #",")))
+
+(defn- enclose-string-in-braces
+  "Given a string encloses it in curly braces"
+  [string]
+  (str "{" string "}")) 
+
+(defn- generate-postgres-array
+  "Generates a postgres array from a csv string or a vector"
+  [input]
+  (->>
+    (if (= true (coll? input))
+      (identity input)
+      (split-string input))
+    (map quote-string)
+    (clojure.string/join ",")
+    (enclose-string-in-braces)))
+
+(defn array-column-value
+  "Transforms into postgres array column format a sequence of values"
+  [coll]
+  (cond
+    (nil? coll) nil
+    :else (generate-postgres-array coll)))
