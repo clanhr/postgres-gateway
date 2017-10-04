@@ -15,7 +15,9 @@
   (is (= "{\"Kw, Lda.\",\"bi\"}" (utils/array-column-value ["Kw, Lda." "bi"])))
   (is (= "{\"wa,za\",\"wa,bi\"}" (utils/array-column-value ["wa,za" "wa,bi"])))
   (is (= "{\"wa, lda\",\"we,inc\",\"bi\"}" (utils/array-column-value "wa, lda§we,inc§bi")))
-  (is (= "{\"wa, lda\",\"bi\",\"wa,inc\"}" (utils/array-column-value "wa, lda§bi§wa,inc"))))
+  (is (= "{\"wa, lda\",\"bi\",\"wa,inc\"}" (utils/array-column-value "wa, lda§bi§wa,inc")))
+  (is (= "{\"wa, lda\"}" (utils/array-column-value "wa, lda§")))
+  (is (= "{}" (utils/array-column-value "§"))))
 
 (deftest like-value
   (is (= "" (utils/like-value nil)))
