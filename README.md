@@ -1,4 +1,4 @@
-# ClanHR Postgres Gateway [![Build Status](https://travis-ci.org/clanhr/postgres-gateway.svg)](https://travis-ci.org/clanhr/postgres-gateway)
+# ClanHR Postgres Gateway [![Build Status](https://app.travis-ci.com/clanhr/postgres-gateway.svg?branch=master)](https://app.travis-ci.com/clanhr/postgres-gateway)
 
 ![Clojars Project](http://clojars.org/clanhr/postgres-gateway/latest-version.svg)
 
